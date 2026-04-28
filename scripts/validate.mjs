@@ -38,6 +38,10 @@ await exists('architecture spec', 'docs/architecture.md');
 await exists('implementation plan', 'docs/implementation-plan.md');
 await exists('QA validation matrix', 'docs/qa-validation-matrix.md');
 await exists('in-game setup guide', 'docs/in-game-setup.md');
+await exists('Dockerfile', 'Dockerfile');
+await exists('Compose file', 'compose.yaml');
+await exists('Docker Compose docs', 'docs/docker-compose.md');
+await exists('environment example', '.env.example');
 await exists('turtle bundle manifest', 'dist/turtle-bundle/manifest.json');
 await exists('turtle startup bundle', 'dist/turtle-bundle/startup.lua');
 

@@ -51,6 +51,17 @@ npm run validate
 
 `validate` runs Node tests, builds the turtle bundle, checks core docs, and runs Lua syntax validation when `luac` is available.
 
+## Docker Compose
+
+Run the control plane, gateway, MCP adapter surface, and operator console:
+
+```sh
+cp .env.example .env
+docker compose up --build
+```
+
+See [docs/docker-compose.md](/home/matiss/Code/ccScripts/docs/docker-compose.md) for details.
+
 ## Safety Defaults
 
 - Turtles connect outbound to the server.

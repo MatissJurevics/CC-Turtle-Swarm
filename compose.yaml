@@ -1,0 +1,26 @@
+services:
+  control-plane:
+    build:
+      context: .
+    image: computercraft-turtle-fleet:local
+    container_name: cc-turtle-fleet-control-plane
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-8787}
+      TURTLE_PAIRING_TOKEN: ${TURTLE_PAIRING_TOKEN:-dev-pairing-token}
+    ports:
+      - "${PORT:-8787}:${PORT:-8787}"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:' + (process.env.PORT || 8787) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+

@@ -14,6 +14,8 @@ For local development, `HOST` must be reachable from the Minecraft/CC: Tweaked e
 
 Use `wss://` with real credentials outside a trusted local network.
 
+When using Docker Compose, `HOST` is the Docker host IP or LAN address, and the pairing token comes from `.env`.
+
 ## 2. CC: Tweaked HTTP Checklist
 
 Verify the server config allows:
