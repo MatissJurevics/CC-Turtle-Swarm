@@ -1,0 +1,14 @@
+{
+  "name": "computercraft-turtle-fleet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server/src/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
+
