@@ -66,3 +66,13 @@ test('cancels queued command only before dispatch', () => {
   assert.equal(queue.nextForTurtle('turtle-001'), null);
 });
 
+test('clears queued commands for one turtle', () => {
+  const queue = new CommandQueue();
+  queue.enqueue({ turtleId: 'turtle-001', kind: 'turtle.action' });
+  queue.enqueue({ turtleId: 'turtle-001', kind: 'turtle.action' });
+  queue.enqueue({ turtleId: 'turtle-002', kind: 'turtle.action' });
+
+  assert.equal(queue.clearForTurtle('turtle-001'), 2);
+  assert.equal(queue.nextForTurtle('turtle-001'), null);
+  assert.notEqual(queue.nextForTurtle('turtle-002'), null);
+});

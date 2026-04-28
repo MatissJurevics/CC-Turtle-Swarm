@@ -161,6 +161,17 @@ async function sendAction(action) {
   await refresh();
 }
 
+async function clearQueue() {
+  if (!state.selectedTurtleId) {
+    return;
+  }
+  await api(`/api/turtles/${state.selectedTurtleId}/queue-clear`, {
+    method: 'POST',
+    body: { reason: 'operator_clear' }
+  });
+  await refresh();
+}
+
 async function createJob(event) {
   event.preventDefault();
   const goalText = $('#goalInput').value.trim();
@@ -211,9 +222,9 @@ document.addEventListener('click', (event) => {
 
 $('#refreshButton').addEventListener('click', refresh);
 $('#leaseButton').addEventListener('click', acquireLease);
+$('#clearQueueButton').addEventListener('click', clearQueue);
 $('#jobForm').addEventListener('submit', createJob);
 $('#worldForm').addEventListener('submit', queryWorld);
 
 refresh();
 setInterval(refresh, 5000);
-

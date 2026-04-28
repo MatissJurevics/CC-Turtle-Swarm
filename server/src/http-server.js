@@ -80,6 +80,13 @@ export async function handleApiRequest(req, res, plane) {
     return sendJson(res, result.ok ? 202 : 400, result);
   }
 
+  if (req.method === 'POST' && turtleMatch && turtleMatch[2] === 'queue-clear') {
+    const body = await readJson(req);
+    const result = plane.domain.clearTurtleQueue(turtleMatch[1], body.reason ?? 'api_clear');
+    audit(plane, req, 200, result);
+    return sendJson(res, 200, result);
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/jobs') {
     return sendJson(res, 200, { jobs: models().fleet.jobs() });
   }

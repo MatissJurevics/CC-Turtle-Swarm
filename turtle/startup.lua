@@ -14,7 +14,10 @@ local function write_default_config()
   handle.writeLine("  turtle_id = os.getComputerLabel() or ('turtle-' .. os.getComputerID()),")
   handle.writeLine("  fleet_url = 'ws://127.0.0.1:8787/turtle/ws',")
   handle.writeLine("  pairing_token = 'dev-pairing-token',")
-  handle.writeLine("  runtime_version = '0.1.0'")
+  handle.writeLine("  runtime_version = '0.1.0',")
+  handle.writeLine("  dimension = 'overworld',")
+  handle.writeLine("  initial_facing = 'north',")
+  handle.writeLine("  initial_position = nil")
   handle.writeLine("}")
   handle.close()
 end
@@ -40,4 +43,3 @@ if not ok then
   sleep(5)
   os.reboot()
 end
-

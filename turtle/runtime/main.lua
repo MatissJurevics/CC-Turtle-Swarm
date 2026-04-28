@@ -7,6 +7,7 @@ local actuator = require("actuator")
 local transport = require("transport")
 local executor = require("executor")
 local watchdog = require("watchdog")
+local odometry = require("odometry")
 
 local cfg, err = config_loader.load("/fleet/config.lua")
 if not cfg then
@@ -16,6 +17,7 @@ end
 local runtime = {
   config = cfg,
   events = spool.new("/fleet/events.spool"),
+  odometry = odometry.new(cfg),
   seq = 0
 }
 
@@ -34,16 +36,27 @@ function runtime:observe()
     } or nil
   end
 
+  local pose = self.odometry:snapshot()
   return {
     turtle_id = self.config.turtle_id,
     computer_id = os.getComputerID(),
     label = os.getComputerLabel(),
+    position = pose.position,
+    facing = pose.facing,
+    dimension = pose.dimension,
+    position_confidence = pose.confidence,
     fuel = turtle.getFuelLevel(),
     fuel_limit = turtle.getFuelLimit(),
     selected_slot = turtle.getSelectedSlot(),
     inventory = inventory,
     runtime_version = self.config.runtime_version
   }
+end
+
+function runtime:after_action(action, success)
+  if success then
+    self.odometry:after_success(action)
+  end
 end
 
 function runtime:emit(event_type, body)
@@ -154,6 +167,7 @@ runtime:emit("event.turtle.booted", runtime:observe())
 while true do
   if rt_transport:connect() then
     runtime:emit("event.turtle.heartbeat", runtime:observe())
+    runtime.odometry:reconcile_gps(0.5)
     send_spool()
     rt_transport:send({ type = "command.next" })
     local message = rt_transport:receive(1)

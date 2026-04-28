@@ -39,6 +39,7 @@ function actuator.new(runtime)
 
     local result = table.pack(fn(table.unpack(args or {})))
     local success = result[1] == true
+    self.runtime:after_action(action, success)
     local after = self.runtime:observe()
     local body = {
       command_id = context and context.command_id or nil,

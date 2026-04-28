@@ -51,6 +51,7 @@ const luaFiles = [
   'turtle/runtime/transport.lua',
   'turtle/runtime/watchdog.lua',
   'turtle/runtime/executor.lua',
+  'turtle/runtime/odometry.lua',
   'turtle/runtime/main.lua'
 ];
 if (luac.status === 0) {

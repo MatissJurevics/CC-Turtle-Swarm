@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
 export class ControlPlaneDomain {
+  #lastActionAt = new Map();
+  #failureCounts = new Map();
+  #rateLimitMs;
+
   constructor({ events, leases, commands, scripts, scheduler, factory }) {
     this.events = events;
     this.leases = leases;
@@ -8,6 +12,7 @@ export class ControlPlaneDomain {
     this.scripts = scripts;
     this.scheduler = scheduler;
     this.factory = factory;
+    this.#rateLimitMs = 100;
   }
 
   acquireLease(input) {
@@ -28,6 +33,13 @@ export class ControlPlaneDomain {
     if (!lease?.leaseId) {
       return { ok: false, reason: 'missing_lease' };
     }
+    const now = Date.now();
+    const last = this.#lastActionAt.get(turtleId) ?? 0;
+    if (now - last < this.#rateLimitMs && !idempotencyKey) {
+      return { ok: false, reason: 'rate_limited' };
+    }
+    this.#lastActionAt.set(turtleId, now);
+
     const leaseValidation = this.leases.validate({
       type: 'turtle_control',
       resourceId: turtleId,
@@ -56,6 +68,21 @@ export class ControlPlaneDomain {
 
   completeCommand(commandId, result) {
     const command = this.commands.complete(commandId, result);
+    if (result?.success) {
+      this.#failureCounts.set(command.turtleId, 0);
+    } else {
+      const failures = (this.#failureCounts.get(command.turtleId) ?? 0) + 1;
+      this.#failureCounts.set(command.turtleId, failures);
+      if (failures >= 3) {
+        this.events.append({
+          type: 'event.turtle.quarantined',
+          aggregateType: 'turtle',
+          aggregateId: command.turtleId,
+          turtleId: command.turtleId,
+          payload: { reason: 'repeated_command_failures', failures }
+        });
+      }
+    }
     this.events.append({
       type: 'event.command.completed',
       aggregateType: 'command',
@@ -65,6 +92,18 @@ export class ControlPlaneDomain {
       payload: { command, result }
     });
     return command;
+  }
+
+  clearTurtleQueue(turtleId, reason = 'manual_clear') {
+    const cleared = this.commands.clearForTurtle(turtleId);
+    this.events.append({
+      type: 'event.command_queue.cleared',
+      aggregateType: 'turtle',
+      aggregateId: turtleId,
+      turtleId,
+      payload: { cleared, reason }
+    });
+    return { ok: true, cleared };
   }
 
   createJob({ goalText, priority = 0, constraints = {}, createdBy = 'system' }) {
@@ -114,4 +153,3 @@ export class ControlPlaneDomain {
     return { ok: true };
   }
 }
-

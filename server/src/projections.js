@@ -102,6 +102,11 @@ export class FleetProjection {
         turtle.lastError = event.payload.error ?? { code: 'action_failed' };
       }
     }
+    if (event.type === 'event.turtle.quarantined') {
+      turtle.status = 'quarantined';
+      turtle.lastError = { code: 'quarantined', message: event.payload.reason };
+      turtle.updatedAt = event.createdAt;
+    }
   }
 
   replay(events) {

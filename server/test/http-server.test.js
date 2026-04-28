@@ -155,6 +155,21 @@ test('HTTP API acquires lease and enqueues turtle action', async () => {
   assert.equal(action.body.command.kind, 'turtle.action');
 });
 
+test('HTTP API clears queued turtle commands', async () => {
+  const plane = createControlPlane();
+  plane.commands.enqueue({ turtleId: 'turtle-001', kind: 'turtle.action' });
+  plane.commands.enqueue({ turtleId: 'turtle-001', kind: 'turtle.action' });
+
+  const cleared = await callApi(plane, {
+    method: 'POST',
+    url: '/api/turtles/turtle-001/queue-clear',
+    body: { reason: 'test' }
+  });
+
+  assert.equal(cleared.status, 200);
+  assert.equal(cleared.body.cleared, 2);
+});
+
 test('HTTP API creates and cancels jobs', async () => {
   const plane = createControlPlane();
   const created = await callApi(plane, {

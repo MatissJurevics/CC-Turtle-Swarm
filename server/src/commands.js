@@ -73,8 +73,19 @@ export class CommandQueue {
     return true;
   }
 
+  clearForTurtle(turtleId) {
+    let cleared = 0;
+    for (const command of this.#commands) {
+      if (command.turtleId === turtleId && command.status === 'queued') {
+        command.status = 'cancelled';
+        command.completedAt = new Date().toISOString();
+        cleared += 1;
+      }
+    }
+    return cleared;
+  }
+
   all() {
     return this.#commands.map((command) => ({ ...command }));
   }
 }
-
