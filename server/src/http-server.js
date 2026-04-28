@@ -1,8 +1,19 @@
 import http from 'node:http';
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createControlPlane } from './index.js';
 import { notFound, parseUrl, readJson, sendJson } from './http-utils.js';
 import { WebSocketGateway } from './websocket-gateway.js';
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const staticFiles = new Map([
+  ['/', { path: 'web/index.html', contentType: 'text/html; charset=utf-8' }],
+  ['/index.html', { path: 'web/index.html', contentType: 'text/html; charset=utf-8' }],
+  ['/app.js', { path: 'web/app.js', contentType: 'text/javascript; charset=utf-8' }],
+  ['/styles.css', { path: 'web/styles.css', contentType: 'text/css; charset=utf-8' }]
+]);
 
 function audit(plane, req, statusCode, payload = {}) {
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
@@ -127,11 +138,26 @@ export async function handleApiRequest(req, res, plane) {
   return notFound(res);
 }
 
+export async function handleHttpRequest(req, res, plane) {
+  const url = parseUrl(req);
+  const staticFile = req.method === 'GET' ? staticFiles.get(url.pathname) : null;
+  if (staticFile) {
+    const body = await readFile(path.join(rootDir, staticFile.path));
+    res.writeHead(200, {
+      'content-type': staticFile.contentType,
+      'content-length': body.length
+    });
+    res.end(body);
+    return;
+  }
+  return handleApiRequest(req, res, plane);
+}
+
 export function createHttpServer({ plane = createControlPlane(), pairingToken = 'dev-pairing-token' } = {}) {
   const gateway = new WebSocketGateway({ plane, pairingToken });
   const server = http.createServer(async (req, res) => {
     try {
-      await handleApiRequest(req, res, plane);
+      await handleHttpRequest(req, res, plane);
     } catch (error) {
       sendJson(res, 500, { ok: false, reason: 'internal_error', message: error.message });
     }

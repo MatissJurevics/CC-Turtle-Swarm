@@ -102,14 +102,14 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 9. Operator Web UI
 
-- [ ] Fleet dashboard.
-- [ ] Turtle detail.
-- [ ] Manual control pad with lease status.
-- [ ] Job board.
-- [ ] World cell query/debug view.
-- [ ] Script registry view.
-- [ ] Diagnostics view.
-- [ ] Responsive layout smoke test.
+- [x] Fleet dashboard.
+- [x] Turtle detail.
+- [x] Manual control pad with lease status.
+- [x] Job board.
+- [x] World cell query/debug view.
+- [x] Script registry view.
+- [x] Diagnostics view.
+- [x] Responsive layout smoke test.
 
 ## 10. Factory
 
@@ -129,6 +129,6 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Node unit tests for MCP.
 - [x] HTTP API integration tests.
 - [x] WebSocket gateway integration tests.
-- [ ] Static UI smoke test.
+- [x] Static UI smoke test.
 - [ ] Lua syntax validation when `luac` is available.
 - [ ] Manual CC: Tweaked smoke test checklist.

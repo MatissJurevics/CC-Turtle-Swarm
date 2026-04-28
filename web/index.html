@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ComputerCraft Fleet Console</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ComputerCraft Fleet</p>
+        <h1>Operator Console</h1>
+      </div>
+      <div class="status-strip" aria-live="polite">
+        <span id="healthStatus">checking</span>
+        <span id="updatedAt">not synced</span>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="pane fleet-pane" aria-labelledby="fleetHeading">
+        <div class="pane-heading">
+          <h2 id="fleetHeading">Fleet</h2>
+          <button id="refreshButton" type="button">Refresh</button>
+        </div>
+        <div class="metrics" id="fleetMetrics"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Turtle</th>
+                <th>Status</th>
+                <th>Fuel</th>
+                <th>Runtime</th>
+              </tr>
+            </thead>
+            <tbody id="turtleRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pane detail-pane" aria-labelledby="detailHeading">
+        <div class="pane-heading">
+          <h2 id="detailHeading">Turtle Detail</h2>
+          <span id="selectedTurtleLabel">none selected</span>
+        </div>
+        <div class="detail-grid">
+          <div>
+            <h3>Inventory</h3>
+            <div id="inventoryGrid" class="inventory-grid"></div>
+          </div>
+          <div>
+            <h3>Manual Control</h3>
+            <div class="control-row">
+              <input id="holderInput" value="operator" aria-label="Lease holder">
+              <button id="leaseButton" type="button">Lease</button>
+            </div>
+            <div class="control-pad">
+              <button data-action="inspect" type="button">Inspect</button>
+              <button data-action="forward" type="button">Forward</button>
+              <button data-action="turnLeft" type="button">Left</button>
+              <button data-action="turnRight" type="button">Right</button>
+              <button data-action="up" type="button">Up</button>
+              <button data-action="down" type="button">Down</button>
+            </div>
+            <p id="leaseStatus" class="muted">No active lease</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane jobs-pane" aria-labelledby="jobsHeading">
+        <div class="pane-heading">
+          <h2 id="jobsHeading">Jobs</h2>
+        </div>
+        <form id="jobForm" class="inline-form">
+          <input id="goalInput" placeholder="Goal" aria-label="Job goal">
+          <button type="submit">Create</button>
+        </form>
+        <div id="jobList" class="list"></div>
+      </section>
+
+      <section class="pane world-pane" aria-labelledby="worldHeading">
+        <div class="pane-heading">
+          <h2 id="worldHeading">World Query</h2>
+        </div>
+        <form id="worldForm" class="coordinate-form">
+          <input id="minX" value="0" aria-label="Min X">
+          <input id="maxX" value="2" aria-label="Max X">
+          <input id="minY" value="64" aria-label="Min Y">
+          <input id="maxY" value="64" aria-label="Max Y">
+          <input id="minZ" value="0" aria-label="Min Z">
+          <input id="maxZ" value="2" aria-label="Max Z">
+          <button type="submit">Query</button>
+        </form>
+        <div id="worldCells" class="cell-grid"></div>
+      </section>
+
+      <section class="pane scripts-pane" aria-labelledby="scriptsHeading">
+        <div class="pane-heading">
+          <h2 id="scriptsHeading">Scripts</h2>
+        </div>
+        <div id="scriptList" class="list"></div>
+      </section>
+
+      <section class="pane diagnostics-pane" aria-labelledby="diagnosticsHeading">
+        <div class="pane-heading">
+          <h2 id="diagnosticsHeading">Diagnostics</h2>
+        </div>
+        <div id="diagnosticsList" class="list"></div>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
+

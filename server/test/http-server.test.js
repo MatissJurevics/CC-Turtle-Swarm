@@ -4,7 +4,7 @@ import { Readable } from 'node:stream';
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
 import { createControlPlane } from '../src/index.js';
-import { handleApiRequest } from '../src/http-server.js';
+import { handleApiRequest, handleHttpRequest } from '../src/http-server.js';
 import { WebSocketGateway } from '../src/websocket-gateway.js';
 import { hashBundle } from '../src/scripts.js';
 
@@ -29,6 +29,29 @@ async function callApi(plane, { method = 'GET', url, body }) {
 
   await handleApiRequest(req, res, plane);
   return { status: res.statusCode, body: JSON.parse(res.body) };
+}
+
+async function callHttp(plane, { method = 'GET', url, body }) {
+  const req = Readable.from(body == null ? [] : [JSON.stringify(body)]);
+  req.method = method;
+  req.url = url;
+  req.headers = {};
+
+  const res = {
+    statusCode: null,
+    headers: null,
+    body: '',
+    writeHead(statusCode, headers) {
+      this.statusCode = statusCode;
+      this.headers = headers;
+    },
+    end(chunk) {
+      this.body += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk ?? '';
+    }
+  };
+
+  await handleHttpRequest(req, res, plane);
+  return res;
 }
 
 function encodeClientFrame(payload) {
@@ -196,3 +219,16 @@ test('WebSocket gateway accepts heartbeats and dispatches queued commands withou
   assert.equal(plane.readModels().fleet.turtle('turtle-001').fuel, 99);
 });
 
+test('HTTP server serves operator console static assets', async () => {
+  const plane = createControlPlane();
+  const index = await callHttp(plane, { url: '/' });
+  const styles = await callHttp(plane, { url: '/styles.css' });
+  const app = await callHttp(plane, { url: '/app.js' });
+
+  assert.equal(index.statusCode, 200);
+  assert.match(index.body, /Operator Console/);
+  assert.equal(styles.statusCode, 200);
+  assert.match(styles.body, /fleet-pane/);
+  assert.equal(app.statusCode, 200);
+  assert.match(app.body, /\/api\/fleet/);
+});
