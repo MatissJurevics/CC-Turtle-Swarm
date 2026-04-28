@@ -6,6 +6,7 @@ import { ScriptRegistry } from './scripts.js';
 import { Scheduler } from './scheduler.js';
 import { FactoryService } from './factory.js';
 import { ControlPlaneDomain } from './domain.js';
+import { McpAdapter } from './mcp-adapter.js';
 
 export function createControlPlane() {
   const events = new EventStore();
@@ -15,6 +16,7 @@ export function createControlPlane() {
   const scheduler = new Scheduler();
   const factory = new FactoryService({ leases, events });
   const domain = new ControlPlaneDomain({ events, leases, commands, scripts, scheduler, factory });
+  const mcp = new McpAdapter({ plane: { events, leases, commands, scripts, scheduler, factory, domain, readModels: () => buildReadModels(events) } });
 
   return {
     events,
@@ -24,6 +26,7 @@ export function createControlPlane() {
     scheduler,
     factory,
     domain,
+    mcp,
     readModels() {
       return buildReadModels(events);
     },

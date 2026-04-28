@@ -93,12 +93,12 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 8. MCP Adapter
 
-- [ ] Resource definitions for fleet/turtle/job/world/script/errors.
-- [ ] Tool schemas for safe read tools.
-- [ ] Tool schemas for guarded mutating tools.
-- [ ] Input validation.
-- [ ] Audit events for tool calls.
-- [ ] Confirmation-required metadata for dangerous tools.
+- [x] Resource definitions for fleet/turtle/job/world/script/errors.
+- [x] Tool schemas for safe read tools.
+- [x] Tool schemas for guarded mutating tools.
+- [x] Input validation.
+- [x] Audit events for tool calls.
+- [x] Confirmation-required metadata for dangerous tools.
 
 ## 9. Operator Web UI
 
@@ -126,7 +126,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Node unit tests for event store, leases, commands, control-plane composition.
 - [x] Node unit tests for projections and world model.
 - [x] Node unit tests for scripts, scheduler, factory.
-- [ ] Node unit tests for MCP.
+- [x] Node unit tests for MCP.
 - [x] HTTP API integration tests.
 - [x] WebSocket gateway integration tests.
 - [ ] Static UI smoke test.
