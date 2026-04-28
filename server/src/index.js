@@ -40,10 +40,15 @@ export function createControlPlane() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const plane = createControlPlane();
-  console.log(JSON.stringify({
-    status: 'ok',
-    service: 'computercraft-turtle-fleet',
-    components: Object.keys(plane)
-  }));
+  const { createHttpServer } = await import('./http-server.js');
+  const port = Number(process.env.PORT ?? 8787);
+  const { server, plane } = createHttpServer();
+  server.listen(port, () => {
+    console.log(JSON.stringify({
+      status: 'listening',
+      service: 'computercraft-turtle-fleet',
+      port,
+      components: Object.keys(plane)
+    }));
+  });
 }

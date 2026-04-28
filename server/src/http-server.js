@@ -1,0 +1,141 @@
+import http from 'node:http';
+import { randomUUID } from 'node:crypto';
+import { createControlPlane } from './index.js';
+import { notFound, parseUrl, readJson, sendJson } from './http-utils.js';
+import { WebSocketGateway } from './websocket-gateway.js';
+
+function audit(plane, req, statusCode, payload = {}) {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    return;
+  }
+  plane.events.append({
+    type: 'event.audit.api_call',
+    aggregateType: 'api',
+    aggregateId: randomUUID(),
+    payload: {
+      method: req.method,
+      url: req.url,
+      statusCode,
+      payload
+    }
+  });
+}
+
+export async function handleApiRequest(req, res, plane) {
+  const url = parseUrl(req);
+  const models = () => plane.readModels();
+
+  if (req.method === 'GET' && url.pathname === '/health') {
+    return sendJson(res, 200, { ok: true, service: 'computercraft-turtle-fleet' });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/fleet') {
+    const read = models();
+    return sendJson(res, 200, {
+      turtles: read.fleet.turtles(),
+      jobs: read.fleet.jobs(),
+      diagnostics: read.diagnostics.recent({ limit: 10 }),
+      commands: plane.commands.all()
+    });
+  }
+
+  const turtleMatch = url.pathname.match(/^\/api\/turtles\/([^/]+)(?:\/([^/]+))?$/);
+  if (req.method === 'GET' && turtleMatch) {
+    const turtle = models().fleet.turtle(turtleMatch[1]);
+    if (!turtle) {
+      return notFound(res);
+    }
+    if (turtleMatch[2] === 'inventory') {
+      return sendJson(res, 200, { turtleId: turtle.turtleId, inventory: turtle.inventory });
+    }
+    if (turtleMatch[2] === 'logs') {
+      return sendJson(res, 200, { turtleId: turtle.turtleId, events: plane.events.byTurtle(turtle.turtleId) });
+    }
+    return sendJson(res, 200, turtle);
+  }
+
+  if (req.method === 'POST' && turtleMatch && turtleMatch[2] === 'actions') {
+    const body = await readJson(req);
+    const result = plane.domain.enqueueAction({
+      turtleId: turtleMatch[1],
+      action: body.action,
+      args: body.args ?? [],
+      lease: body.lease,
+      idempotencyKey: body.idempotencyKey,
+      requestedBy: body.requestedBy ?? 'api',
+      ttlMs: body.ttlMs ?? 5000
+    });
+    audit(plane, req, result.ok ? 202 : 400, result);
+    return sendJson(res, result.ok ? 202 : 400, result);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/jobs') {
+    return sendJson(res, 200, { jobs: models().fleet.jobs() });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/jobs') {
+    const body = await readJson(req);
+    const job = plane.domain.createJob(body);
+    audit(plane, req, 201, { jobId: job.jobId });
+    return sendJson(res, 201, { ok: true, job });
+  }
+
+  const cancelMatch = url.pathname.match(/^\/api\/jobs\/([^/]+)\/cancel$/);
+  if (req.method === 'POST' && cancelMatch) {
+    const body = await readJson(req);
+    const result = plane.domain.cancelJob(cancelMatch[1], body.reason ?? 'api_cancelled');
+    audit(plane, req, 200, result);
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/leases') {
+    const body = await readJson(req);
+    const result = plane.domain.acquireLease(body);
+    audit(plane, req, result.ok ? 201 : 409, result);
+    return sendJson(res, result.ok ? 201 : 409, result);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/world') {
+    const query = Object.fromEntries(url.searchParams);
+    const cells = models().world.query({
+      dimension: query.dimension ?? 'overworld',
+      minX: Number(query.minX ?? 0),
+      maxX: Number(query.maxX ?? query.minX ?? 0),
+      minY: Number(query.minY ?? 0),
+      maxY: Number(query.maxY ?? query.minY ?? 0),
+      minZ: Number(query.minZ ?? 0),
+      maxZ: Number(query.maxZ ?? query.minZ ?? 0)
+    });
+    return sendJson(res, 200, { cells });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/errors/recent') {
+    return sendJson(res, 200, { errors: models().diagnostics.recent({ limit: Number(url.searchParams.get('limit') ?? 20) }) });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/scripts') {
+    return sendJson(res, 200, { scripts: plane.scripts.list() });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/scripts') {
+    const body = await readJson(req);
+    const result = plane.scripts.deploy(body);
+    audit(plane, req, result.ok ? 201 : 400, result);
+    return sendJson(res, result.ok ? 201 : 400, result);
+  }
+
+  return notFound(res);
+}
+
+export function createHttpServer({ plane = createControlPlane(), pairingToken = 'dev-pairing-token' } = {}) {
+  const gateway = new WebSocketGateway({ plane, pairingToken });
+  const server = http.createServer(async (req, res) => {
+    try {
+      await handleApiRequest(req, res, plane);
+    } catch (error) {
+      sendJson(res, 500, { ok: false, reason: 'internal_error', message: error.message });
+    }
+  });
+  server.on('upgrade', (req, socket) => gateway.handleUpgrade(req, socket));
+  return { server, plane, gateway };
+}

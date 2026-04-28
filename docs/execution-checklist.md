@@ -40,27 +40,27 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 3. Gateway Transport
 
-- [ ] HTTP server foundation.
-- [ ] WebSocket route `/turtle/ws`.
-- [ ] Pairing-token authentication.
-- [ ] Heartbeat ingestion.
-- [ ] Event ingestion and ack.
-- [ ] Command dispatch to connected turtles.
-- [ ] Reconnect replay test with simulated turtle.
+- [x] HTTP server foundation.
+- [x] WebSocket route `/turtle/ws`.
+- [x] Pairing-token authentication.
+- [x] Heartbeat ingestion.
+- [x] Event ingestion and ack.
+- [x] Command dispatch to connected turtles.
+- [x] Reconnect replay test with simulated turtle.
 
 ## 4. Operator API
 
-- [ ] `GET /api/fleet`.
-- [ ] `GET /api/turtles/:id`.
-- [ ] `GET /api/turtles/:id/inventory`.
-- [ ] `GET /api/turtles/:id/logs`.
-- [ ] `GET /api/jobs`.
-- [ ] `POST /api/jobs`.
-- [ ] `POST /api/jobs/:id/cancel`.
-- [ ] `POST /api/leases`.
-- [ ] `POST /api/turtles/:id/actions`.
-- [ ] `GET /api/world`.
-- [ ] Audit event for every mutating request.
+- [x] `GET /api/fleet`.
+- [x] `GET /api/turtles/:id`.
+- [x] `GET /api/turtles/:id/inventory`.
+- [x] `GET /api/turtles/:id/logs`.
+- [x] `GET /api/jobs`.
+- [x] `POST /api/jobs`.
+- [x] `POST /api/jobs/:id/cancel`.
+- [x] `POST /api/leases`.
+- [x] `POST /api/turtles/:id/actions`.
+- [x] `GET /api/world`.
+- [x] Audit event for every mutating request.
 
 ## 5. World Model
 
@@ -127,8 +127,8 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Node unit tests for projections and world model.
 - [x] Node unit tests for scripts, scheduler, factory.
 - [ ] Node unit tests for MCP.
-- [ ] HTTP API integration tests.
-- [ ] WebSocket gateway integration tests.
+- [x] HTTP API integration tests.
+- [x] WebSocket gateway integration tests.
 - [ ] Static UI smoke test.
 - [ ] Lua syntax validation when `luac` is available.
 - [ ] Manual CC: Tweaked smoke test checklist.
