@@ -8,7 +8,7 @@
     "paste:startup": "node scripts/render-turtle-paste.mjs",
     "validate": "node scripts/validate.mjs",
     "test": "node --test",
-    "start": "node server/src/index.js"
+    "start": "node server/src/run.js"
   },
   "engines": {
     "node": ">=22"
