@@ -1,10 +1,12 @@
 const state = {
   fleet: { turtles: [], jobs: [], diagnostics: [], commands: [] },
   selectedTurtleId: null,
-  lease: null
+  lease: null,
+  toastTimer: null
 };
 
 const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -12,7 +14,11 @@ async function api(path, options = {}) {
     headers: { 'content-type': 'application/json', ...(options.headers ?? {}) },
     body: options.body && typeof options.body !== 'string' ? JSON.stringify(options.body) : options.body
   });
-  return response.json();
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.reason ?? payload.message ?? `Request failed: ${response.status}`);
+  }
+  return payload;
 }
 
 function statusClass(status) {
@@ -41,7 +47,13 @@ function renderFleet() {
       <td>${turtle.fuel ?? 'n/a'}</td>
       <td>${turtle.runtimeVersion ?? 'n/a'}</td>
     </tr>
-  `).join('');
+  `).join('') || `
+    <tr>
+      <td colspan="4">
+        <div class="empty-state">No turtles online. Start at <a href="#setup">Setup instructions</a>, then reboot the turtle.</div>
+      </td>
+    </tr>
+  `;
 }
 
 function renderInventory(turtle) {
@@ -65,6 +77,18 @@ function renderDetail() {
   $('#selectedTurtleLabel').textContent = turtle ? `${turtle.turtleId} ${turtle.status}` : 'none selected';
   renderInventory(turtle);
   $('#leaseStatus').textContent = state.lease ? `Lease ${state.lease.leaseId}` : 'No active lease';
+  const hasTurtle = Boolean(turtle);
+  const hasLease = Boolean(state.lease);
+  $('#leaseButton').disabled = !hasTurtle;
+  $('#clearQueueButton').disabled = !hasTurtle;
+  $$('[data-action]').forEach((button) => {
+    button.disabled = !hasTurtle || !hasLease;
+  });
+  $('#actionStatus').textContent = hasTurtle
+    ? hasLease
+      ? 'Lease active. Keep actions bounded.'
+      : 'Acquire a lease before sending actions.'
+    : 'Select an online turtle before sending actions.';
 }
 
 function renderJobs() {
@@ -76,7 +100,7 @@ function renderJobs() {
       </div>
       <span class="tag ${statusClass(job.status)}">${job.status}</span>
     </div>
-  `).join('') || '<p class="muted">No jobs</p>';
+  `).join('') || '<p class="empty-state">No jobs yet. Create a survey goal after the first heartbeat succeeds.</p>';
 }
 
 function renderScripts() {
@@ -89,7 +113,7 @@ function renderScripts() {
         </div>
         <span class="tag">${script.approved ? 'approved' : 'draft'}</span>
       </div>
-    `).join('') || '<p class="muted">No scripts</p>';
+    `).join('') || '<p class="empty-state">No scripts deployed. Validate and deploy scripts only after manual inspect works.</p>';
   });
 }
 
@@ -102,7 +126,13 @@ function renderDiagnostics() {
       </div>
       <span class="tag">error</span>
     </div>
-  `).join('') || '<p class="muted">No recent errors</p>';
+  `).join('') || '<p class="empty-state">No recent errors. Failed commands and script crashes will appear here.</p>';
+}
+
+function setNotice(message) {
+  $('#actionStatus').textContent = message;
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(renderDetail, 2400);
 }
 
 async function refresh() {
@@ -122,6 +152,7 @@ async function refresh() {
   } catch (error) {
     $('#healthStatus').textContent = 'offline';
     $('#updatedAt').textContent = error.message;
+    setNotice(`Sync failed: ${error.message}`);
   }
 }
 
@@ -130,46 +161,63 @@ async function acquireLease() {
     return;
   }
   const holder = $('#holderInput').value || 'operator';
-  const payload = await api('/api/leases', {
-    method: 'POST',
-    body: {
-      type: 'turtle_control',
-      resourceId: state.selectedTurtleId,
-      holder,
-      ttlMs: 60000
+  try {
+    const payload = await api('/api/leases', {
+      method: 'POST',
+      body: {
+        type: 'turtle_control',
+        resourceId: state.selectedTurtleId,
+        holder,
+        ttlMs: 60000
+      }
+    });
+    if (payload.ok) {
+      state.lease = payload.lease;
+      setNotice('Lease acquired for 60 seconds.');
     }
-  });
-  if (payload.ok) {
-    state.lease = payload.lease;
+  } catch (error) {
+    setNotice(`Lease failed: ${error.message}`);
   }
   renderDetail();
 }
 
 async function sendAction(action) {
   if (!state.selectedTurtleId || !state.lease) {
+    setNotice('Select a turtle and acquire a lease first.');
     return;
   }
-  await api(`/api/turtles/${state.selectedTurtleId}/actions`, {
-    method: 'POST',
-    body: {
-      action,
-      lease: state.lease,
-      requestedBy: $('#holderInput').value || 'operator',
-      idempotencyKey: `${state.selectedTurtleId}-${action}-${Date.now()}`
-    }
-  });
-  await refresh();
+  try {
+    await api(`/api/turtles/${state.selectedTurtleId}/actions`, {
+      method: 'POST',
+      body: {
+        action,
+        lease: state.lease,
+        requestedBy: $('#holderInput').value || 'operator',
+        idempotencyKey: `${state.selectedTurtleId}-${action}-${Date.now()}`
+      }
+    });
+    setNotice(`${action} queued.`);
+    await refresh();
+  } catch (error) {
+    setNotice(`Action failed: ${error.message}`);
+  }
 }
 
 async function clearQueue() {
   if (!state.selectedTurtleId) {
+    setNotice('Select a turtle before clearing its queue.');
     return;
   }
-  await api(`/api/turtles/${state.selectedTurtleId}/queue-clear`, {
-    method: 'POST',
-    body: { reason: 'operator_clear' }
-  });
-  await refresh();
+  try {
+    const result = await api(`/api/turtles/${state.selectedTurtleId}/queue-clear`, {
+      method: 'POST',
+      body: { reason: 'operator_clear' }
+    });
+    setNotice(`Cleared ${result.cleared} queued commands.`);
+    await refresh();
+  } catch (error) {
+    setNotice(`Clear failed: ${error.message}`);
+  }
 }
 
 async function createJob(event) {
@@ -178,12 +226,17 @@ async function createJob(event) {
   if (!goalText) {
     return;
   }
-  await api('/api/jobs', {
-    method: 'POST',
-    body: { goalText, createdBy: $('#holderInput').value || 'operator' }
-  });
-  $('#goalInput').value = '';
-  await refresh();
+  try {
+    await api('/api/jobs', {
+      method: 'POST',
+      body: { goalText, createdBy: $('#holderInput').value || 'operator' }
+    });
+    $('#goalInput').value = '';
+    setNotice('Job created.');
+    await refresh();
+  } catch (error) {
+    setNotice(`Job failed: ${error.message}`);
+  }
 }
 
 async function queryWorld(event) {
@@ -196,14 +249,100 @@ async function queryWorld(event) {
     minZ: $('#minZ').value,
     maxZ: $('#maxZ').value
   });
-  const payload = await api(`/api/world?${params.toString()}`);
-  $('#worldCells').innerHTML = payload.cells.map((cell) => `
-    <div class="cell" data-occupancy="${cell.occupancy}">
-      <strong>${cell.x}, ${cell.y}, ${cell.z}</strong>
-      <span>${cell.occupancy}</span>
-      <small>${cell.blockName ?? 'unobserved'}</small>
-    </div>
-  `).join('');
+  try {
+    const payload = await api(`/api/world?${params.toString()}`);
+    $('#worldCells').innerHTML = payload.cells.map((cell) => `
+      <div class="cell" data-occupancy="${cell.occupancy}">
+        <strong>${cell.x}, ${cell.y}, ${cell.z}</strong>
+        <span>${cell.occupancy}</span>
+        <small>${cell.blockName ?? 'unobserved'}</small>
+      </div>
+    `).join('');
+  } catch (error) {
+    $('#worldCells').innerHTML = `<p class="empty-state">World query failed: ${error.message}</p>`;
+  }
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+    setNotice('Copied to clipboard.');
+  } catch (error) {
+    setNotice(`Copy failed: ${error.message}`);
+  }
+}
+
+function setupHostText() {
+  const host = window.location.host || '127.0.0.1:8787';
+  $('#gatewayHost').textContent = host;
+  $('#consoleHost').textContent = host;
+  const config = `return {
+  turtle_id = "fleet-dev-001",
+  fleet_url = "ws://${host}/turtle/ws",
+  pairing_token = "dev-pairing-token",
+  runtime_version = "0.1.0",
+  dimension = "overworld",
+  initial_facing = "north",
+  initial_position = nil
+}`;
+  $('#configSnippet').textContent = config;
+}
+
+function initAccordions() {
+  $$('.accordion-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      $$('.accordion-item').forEach((other) => other.classList.remove('is-open'));
+      item.classList.add('is-open');
+    });
+  });
+}
+
+function initMotion() {
+  if (!window.gsap || !window.ScrollTrigger) {
+    return;
+  }
+  window.gsap.registerPlugin(window.ScrollTrigger);
+  window.gsap.from('.command-nav', { y: -24, opacity: 0, duration: 0.7, ease: 'power3.out' });
+  window.gsap.from('.hero-title, .hero-text, .hero-actions', {
+    y: 34,
+    opacity: 0,
+    duration: 0.9,
+    stagger: 0.08,
+    ease: 'power3.out'
+  });
+  window.gsap.utils.toArray('.motion-image').forEach((element) => {
+    window.gsap.fromTo(element, { scale: 0.96, opacity: 0.72 }, {
+      scale: 1,
+      opacity: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: element,
+        start: 'top 75%',
+        end: 'bottom 25%',
+        scrub: true
+      }
+    });
+  });
+  window.gsap.utils.toArray('.motion-card').forEach((element, index) => {
+    window.gsap.from(element, {
+      y: 42 + index * 5,
+      opacity: 0,
+      duration: 0.7,
+      ease: 'power2.out',
+      scrollTrigger: { trigger: element, start: 'top 86%' }
+    });
+  });
 }
 
 document.addEventListener('click', (event) => {
@@ -218,6 +357,11 @@ document.addEventListener('click', (event) => {
   if (action) {
     sendAction(action);
   }
+  const copyButton = event.target.closest('[data-copy], [data-copy-target]');
+  if (copyButton) {
+    const target = copyButton.dataset.copyTarget ? $(`#${copyButton.dataset.copyTarget}`)?.textContent : null;
+    copyText(target ?? copyButton.dataset.copy ?? '');
+  }
 });
 
 $('#refreshButton').addEventListener('click', refresh);
@@ -226,5 +370,8 @@ $('#clearQueueButton').addEventListener('click', clearQueue);
 $('#jobForm').addEventListener('submit', createJob);
 $('#worldForm').addEventListener('submit', queryWorld);
 
+setupHostText();
+initAccordions();
 refresh();
 setInterval(refresh, 5000);
+window.addEventListener('load', initMotion);

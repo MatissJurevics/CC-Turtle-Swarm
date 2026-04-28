@@ -273,8 +273,12 @@ test('HTTP server serves operator console static assets', async () => {
 
   assert.equal(index.statusCode, 200);
   assert.match(index.body, /Operator Console/);
+  assert.match(index.body, /Setup instructions/);
+  assert.match(index.body, /docker compose up --build/);
   assert.equal(styles.statusCode, 200);
-  assert.match(styles.body, /fleet-pane/);
+  assert.match(styles.body, /bento-grid/);
+  assert.match(styles.body, /grid-auto-flow: dense/);
   assert.equal(app.statusCode, 200);
   assert.match(app.body, /\/api\/fleet/);
+  assert.match(app.body, /setupHostText/);
 });
