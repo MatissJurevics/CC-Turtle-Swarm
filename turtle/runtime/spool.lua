@@ -54,8 +54,21 @@ function spool.new(path)
     write_json_lines(self.path, remaining)
   end
 
+  function instance:ack_many(event_ids)
+    local lookup = {}
+    for _, event_id in ipairs(event_ids or {}) do
+      lookup[event_id] = true
+    end
+    local remaining = {}
+    for _, event in ipairs(read_json_lines(self.path)) do
+      if not lookup[event.event_id] and not lookup[event.eventId] then
+        table.insert(remaining, event)
+      end
+    end
+    write_json_lines(self.path, remaining)
+  end
+
   return instance
 end
 
 return spool
-

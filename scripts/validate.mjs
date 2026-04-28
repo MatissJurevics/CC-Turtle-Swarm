@@ -42,23 +42,43 @@ await exists('turtle bundle manifest', 'dist/turtle-bundle/manifest.json');
 await exists('turtle startup bundle', 'dist/turtle-bundle/startup.lua');
 
 const luac = spawnSync('luac', ['-v'], { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+const luaFiles = [
+  'turtle/startup.lua',
+  'turtle/runtime/config.lua',
+  'turtle/runtime/logger.lua',
+  'turtle/runtime/spool.lua',
+  'turtle/runtime/actuator.lua',
+  'turtle/runtime/transport.lua',
+  'turtle/runtime/watchdog.lua',
+  'turtle/runtime/executor.lua',
+  'turtle/runtime/main.lua'
+];
 if (luac.status === 0) {
-  run('lua syntax', 'luac', [
-    '-p',
-    'turtle/startup.lua',
-    'turtle/runtime/config.lua',
-    'turtle/runtime/logger.lua',
-    'turtle/runtime/spool.lua',
-    'turtle/runtime/actuator.lua',
-    'turtle/runtime/main.lua'
-  ]);
+  run('lua syntax', 'luac', ['-p', ...luaFiles]);
 } else {
-  checks.push({
-    name: 'lua syntax',
-    status: 'blocked',
-    command: 'luac -p turtle/startup.lua turtle/runtime/*.lua',
-    output: 'luac is not installed in this environment'
-  });
+  const nixShell = spawnSync('nix-shell', ['--version'], { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+  if (nixShell.status === 0) {
+    const result = spawnSync('nix-shell', ['-p', 'lua', '--run', `luac -p ${luaFiles.join(' ')}`], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
+    checks.push({
+      name: 'lua syntax',
+      status: result.status === 0 ? 'passed' : 'blocked',
+      command: `nix-shell -p lua --run "luac -p ${luaFiles.join(' ')}"`,
+      output: result.status === 0
+        ? ''
+        : 'nix-shell could not run from inside the validation process; run the command directly to validate Lua syntax'
+    });
+  } else {
+    checks.push({
+      name: 'lua syntax',
+      status: 'blocked',
+      command: 'luac -p turtle/startup.lua turtle/runtime/*.lua',
+      output: 'luac is not installed and nix-shell is unavailable'
+    });
+  }
 }
 
 let failed = false;
@@ -76,4 +96,3 @@ for (const check of checks) {
 if (failed) {
   process.exit(1);
 }
-

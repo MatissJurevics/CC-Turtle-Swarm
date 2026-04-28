@@ -57,7 +57,12 @@ async function callHttp(plane, { method = 'GET', url, body }) {
 function encodeClientFrame(payload) {
   const body = Buffer.from(JSON.stringify(payload));
   const mask = Buffer.from([1, 2, 3, 4]);
-  const header = [0x81, 0x80 | body.length, ...mask];
+  const header = [0x81];
+  if (body.length < 126) {
+    header.push(0x80 | body.length, ...mask);
+  } else {
+    header.push(0x80 | 126, (body.length >> 8) & 0xff, body.length & 0xff, ...mask);
+  }
   const masked = Buffer.from(body);
   for (let index = 0; index < masked.length; index += 1) {
     masked[index] ^= mask[index % 4];
@@ -217,6 +222,32 @@ test('WebSocket gateway accepts heartbeats and dispatches queued commands withou
   assert.equal(messages[2].type, 'command.request');
   assert.equal(messages[2].body.body.action, 'inspect');
   assert.equal(plane.readModels().fleet.turtle('turtle-001').fuel, 99);
+});
+
+test('WebSocket gateway completes commands from replayed turtle spool', () => {
+  const plane = createControlPlane();
+  const gateway = new WebSocketGateway({ plane, pairingToken: 'dev-pairing-token' });
+  const command = plane.commands.enqueue({ turtleId: 'turtle-001', kind: 'turtle.action', body: { action: 'inspect' } });
+
+  const socket = new FakeSocket();
+  gateway.handleUpgrade(
+    websocketRequest('/turtle/ws?turtle_id=turtle-001&token=dev-pairing-token'),
+    socket
+  );
+  socket.emit('data', encodeClientFrame({
+    type: 'event.spool',
+    events: [
+      {
+        event_id: 'evt-001',
+        type: 'event.action.completed',
+        aggregate_type: 'command',
+        aggregate_id: command.commandId,
+        body: { command_id: command.commandId, success: true }
+      }
+    ]
+  }));
+
+  assert.equal(plane.commands.all()[0].status, 'succeeded');
 });
 
 test('HTTP server serves operator console static assets', async () => {

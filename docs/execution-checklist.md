@@ -30,12 +30,12 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Local structured logger.
 - [x] Local event spool.
 - [x] Wrapped action API scaffold.
-- [ ] WebSocket transport with reconnect/backoff.
-- [ ] Event ack and replay.
-- [ ] Command receive loop.
-- [ ] Action lease/precondition enforcement.
-- [ ] Watchdog and cooperative stop.
-- [ ] Restricted script execution environment.
+- [x] WebSocket transport with reconnect/backoff.
+- [x] Event ack and replay.
+- [x] Command receive loop.
+- [x] Action lease/precondition enforcement.
+- [x] Watchdog and cooperative stop.
+- [x] Restricted script execution environment.
 - [ ] In-game smoke procedure for boot, heartbeat, inspect.
 
 ## 3. Gateway Transport
@@ -78,7 +78,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Permission validation.
 - [x] Approval/revocation state.
 - [x] Runtime limit model.
-- [ ] Executor contract for turtle runtime.
+- [x] Executor contract for turtle runtime.
 - [x] Tests for invalid manifest, hash mismatch, permission denial, revocation.
 
 ## 7. Scheduler And Jobs
@@ -130,5 +130,5 @@ This checklist is the working contract for implementing the initial architecture
 - [x] HTTP API integration tests.
 - [x] WebSocket gateway integration tests.
 - [x] Static UI smoke test.
-- [ ] Lua syntax validation when `luac` is available.
+- [x] Lua syntax validation when `luac` or `nix-shell -p lua` is available.
 - [ ] Manual CC: Tweaked smoke test checklist.

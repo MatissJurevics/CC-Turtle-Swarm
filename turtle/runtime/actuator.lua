@@ -31,6 +31,7 @@ function actuator.new(runtime)
 
     local before = self.runtime:observe()
     self.runtime:emit("event.action.started", {
+      command_id = context and context.command_id or nil,
       action = action,
       context = context or {},
       before = before
@@ -40,6 +41,7 @@ function actuator.new(runtime)
     local success = result[1] == true
     local after = self.runtime:observe()
     local body = {
+      command_id = context and context.command_id or nil,
       action = action,
       success = success,
       before = before,
@@ -63,4 +65,3 @@ function actuator.new(runtime)
 end
 
 return actuator
-

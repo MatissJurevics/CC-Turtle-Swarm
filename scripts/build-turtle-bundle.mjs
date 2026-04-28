@@ -11,6 +11,9 @@ const files = [
   ['turtle/runtime/logger.lua', 'fleet/runtime/logger.lua'],
   ['turtle/runtime/spool.lua', 'fleet/runtime/spool.lua'],
   ['turtle/runtime/actuator.lua', 'fleet/runtime/actuator.lua'],
+  ['turtle/runtime/transport.lua', 'fleet/runtime/transport.lua'],
+  ['turtle/runtime/watchdog.lua', 'fleet/runtime/watchdog.lua'],
+  ['turtle/runtime/executor.lua', 'fleet/runtime/executor.lua'],
   ['turtle/runtime/main.lua', 'fleet/runtime/main.lua']
 ];
 
@@ -33,4 +36,3 @@ const manifest = {
 await writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
 console.log(`Turtle bundle written to ${path.relative(root, outDir)}`);
-

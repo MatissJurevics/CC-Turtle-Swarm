@@ -166,6 +166,7 @@ export class WebSocketGateway {
     if (message.type === 'event.spool') {
       const acked = [];
       for (const item of message.events ?? []) {
+        const payload = item.body ?? item.payload ?? {};
         const event = this.#plane.events.append({
           eventId: item.event_id ?? item.eventId ?? randomUUID(),
           type: item.type,
@@ -173,9 +174,16 @@ export class WebSocketGateway {
           aggregateId: item.aggregate_id ?? item.aggregateId ?? turtleId,
           turtleId,
           jobId: item.job_id ?? item.jobId ?? null,
-          payload: item.body ?? item.payload ?? {},
+          payload,
           createdAt: item.created_at ?? item.createdAt
         });
+        if (item.type === 'event.action.completed' && (payload.command_id || payload.commandId)) {
+          try {
+            this.#plane.domain.completeCommand(payload.command_id ?? payload.commandId, { success: payload.success, body: payload });
+          } catch {
+            // Preserve replayed turtle events even when the command is no longer in memory.
+          }
+        }
         acked.push(event.eventId);
       }
       this.#send(socket, { type: 'ack', event_ids: acked });
@@ -216,4 +224,3 @@ export class WebSocketGateway {
     socket.write(encodeFrame(payload));
   }
 }
-
