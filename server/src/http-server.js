@@ -11,7 +11,11 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..',
 const staticFiles = new Map([
   ['/', { path: 'web/index.html', contentType: 'text/html; charset=utf-8' }],
   ['/index.html', { path: 'web/index.html', contentType: 'text/html; charset=utf-8' }],
-  ['/app.js', { path: 'web/app.js', contentType: 'text/javascript; charset=utf-8' }],
+  ['/console', { path: 'web/console.html', contentType: 'text/html; charset=utf-8' }],
+  ['/console/', { path: 'web/console.html', contentType: 'text/html; charset=utf-8' }],
+  ['/console.html', { path: 'web/console.html', contentType: 'text/html; charset=utf-8' }],
+  ['/landing.js', { path: 'web/landing.js', contentType: 'text/javascript; charset=utf-8' }],
+  ['/console.js', { path: 'web/console.js', contentType: 'text/javascript; charset=utf-8' }],
   ['/styles.css', { path: 'web/styles.css', contentType: 'text/css; charset=utf-8' }]
 ]);
 

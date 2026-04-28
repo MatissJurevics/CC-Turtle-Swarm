@@ -3,18 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ComputerCraft Fleet Console</title>
+    <title>ComputerCraft Turtle Fleet</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
   </head>
   <body>
     <nav class="command-nav" aria-label="Primary">
-      <a class="brand-mark" href="#setup">ComputerCraft Fleet</a>
+      <a class="brand-mark" href="/">ComputerCraft Fleet</a>
       <div class="nav-links">
         <a href="#setup">Setup</a>
-        <a href="#console">Console</a>
-        <a href="#validation">Validation</a>
+        <a href="#features">Features</a>
+        <a href="/console">Console</a>
       </div>
       <div class="status-strip" aria-live="polite">
         <span id="healthStatus">checking</span>
@@ -22,7 +22,7 @@
       </div>
     </nav>
 
-    <main class="page-shell" id="setup">
+    <main class="page-shell landing-page" id="setup">
       <section class="setup-hero">
         <div class="hero-copy">
           <p class="eyebrow">Setup runway</p>
@@ -31,10 +31,10 @@
             <span class="inline-image inline-image-a" aria-hidden="true"></span>
             Console ready.
           </h1>
-          <p class="hero-text">Start the stack, copy the turtle config, verify heartbeat, then take a lease before any world-changing action.</p>
+          <p class="hero-text">Start the stack, copy the turtle config, verify heartbeat, then move into the operator console for lease-controlled actions.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#console">Open console</a>
-            <a class="button button-secondary" href="#validation">Check setup</a>
+            <a class="button button-primary" href="/console">Open console</a>
+            <a class="button button-secondary" href="#setupInstructions">Read setup</a>
           </div>
         </div>
         <div class="hero-visual motion-image" aria-hidden="true">
@@ -47,7 +47,7 @@
         </div>
       </section>
 
-      <section class="setup-bento" aria-labelledby="setupHeading">
+      <section class="setup-bento" id="setupInstructions" aria-labelledby="setupHeading">
         <div class="section-heading">
           <h2 id="setupHeading">Setup instructions</h2>
           <p>Use these steps when provisioning the first turtle or rebuilding a local test stack.</p>
@@ -69,8 +69,8 @@ docker compose up --build</code></pre>
           <article class="setup-card setup-card-small motion-card">
             <h3>Open console</h3>
             <p>Use the dashboard after the server health check passes.</p>
-            <pre><code>http://<span id="consoleHost">HOST</span>/</code></pre>
-            <a class="button button-secondary compact" href="#console">Go to console</a>
+            <pre><code>http://<span id="consoleHost">HOST</span>/console</code></pre>
+            <a class="button button-secondary compact" href="/console">Go to console</a>
           </article>
           <article class="setup-card setup-card-wide motion-card">
             <h3>Turtle config</h3>
@@ -89,6 +89,35 @@ docker compose up --build</code></pre>
         </div>
       </section>
 
+      <section class="feature-list" id="features" aria-labelledby="featuresHeading">
+        <div class="section-heading">
+          <h2 id="featuresHeading">What the stack gives you</h2>
+          <p>The landing page is for setup. The console is where live operations happen.</p>
+        </div>
+        <div class="feature-rows">
+          <article class="feature-row motion-card">
+            <span>Event-first control plane</span>
+            <strong>Every heartbeat, command, action result, world observation, lease, and failure is recorded for replay and diagnosis.</strong>
+          </article>
+          <article class="feature-row motion-card">
+            <span>Lease-controlled actions</span>
+            <strong>Manual movement and queued work go through lease validation instead of blind remote-control spam.</strong>
+          </article>
+          <article class="feature-row motion-card">
+            <span>Supervised turtle runtime</span>
+            <strong>Turtles keep local state, spool events, reconnect with backoff, and execute wrapped actions.</strong>
+          </article>
+          <article class="feature-row motion-card">
+            <span>World model and diagnostics</span>
+            <strong>Known, unknown, stale, reserved, and failed states are visible to humans and MCP clients.</strong>
+          </article>
+          <article class="feature-row motion-card">
+            <span>Factory-ready provisioning</span>
+            <strong>New turtles are created through an auditable factory workflow with bay leases and provider checks.</strong>
+          </article>
+        </div>
+      </section>
+
       <section class="validation-section" id="validation" aria-labelledby="validationHeading">
         <div class="validation-sticky">
           <p class="eyebrow">Validation path</p>
@@ -101,11 +130,11 @@ docker compose up --build</code></pre>
           </button>
           <button class="accordion-item motion-card" type="button">
             <span>Turtle heartbeat</span>
-            <strong>The fleet table shows status, fuel, runtime version, and recent sync time.</strong>
+            <strong>The console shows status, fuel, runtime version, and recent sync time.</strong>
           </button>
           <button class="accordion-item motion-card" type="button">
             <span>Manual lease</span>
-            <strong>Controls stay guarded until a selected turtle has an active lease.</strong>
+            <strong>Console controls stay guarded until a selected turtle has an active lease.</strong>
           </button>
           <button class="accordion-item motion-card" type="button">
             <span>First action</span>
@@ -129,115 +158,13 @@ docker compose up --build</code></pre>
         </div>
       </div>
 
-      <header class="console-heading" id="console">
-        <div>
-          <p class="eyebrow">Live operations</p>
-          <h2>Operator Console</h2>
-        </div>
-        <p id="consoleHint">Select a turtle, acquire a lease, then run one bounded action.</p>
-      </header>
-
-      <section class="shell" aria-label="Operator console">
-      <section class="pane fleet-pane" aria-labelledby="fleetHeading">
-        <div class="pane-heading">
-          <h2 id="fleetHeading">Fleet</h2>
-          <button id="refreshButton" type="button">Refresh</button>
-        </div>
-        <div class="metrics" id="fleetMetrics"></div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Turtle</th>
-                <th>Status</th>
-                <th>Fuel</th>
-                <th>Runtime</th>
-              </tr>
-            </thead>
-            <tbody id="turtleRows"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="pane detail-pane" aria-labelledby="detailHeading">
-        <div class="pane-heading">
-          <h2 id="detailHeading">Turtle Detail</h2>
-          <span id="selectedTurtleLabel">none selected</span>
-        </div>
-        <div class="detail-grid">
-          <div>
-            <h3>Inventory</h3>
-            <div id="inventoryGrid" class="inventory-grid"></div>
-          </div>
-          <div>
-            <h3>Manual Control</h3>
-            <div class="control-row">
-              <input id="holderInput" value="operator" aria-label="Lease holder">
-              <button id="leaseButton" type="button">Lease</button>
-            </div>
-            <button id="clearQueueButton" type="button">Clear Queue</button>
-            <div class="control-pad">
-              <button data-action="inspect" type="button">Inspect</button>
-              <button data-action="forward" type="button">Forward</button>
-              <button data-action="turnLeft" type="button">Left</button>
-              <button data-action="turnRight" type="button">Right</button>
-              <button data-action="up" type="button">Up</button>
-              <button data-action="down" type="button">Down</button>
-            </div>
-            <p id="leaseStatus" class="muted">No active lease</p>
-            <p id="actionStatus" class="muted">Actions require a selected turtle and lease.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="pane jobs-pane" aria-labelledby="jobsHeading">
-        <div class="pane-heading">
-          <h2 id="jobsHeading">Jobs</h2>
-        </div>
-        <form id="jobForm" class="inline-form">
-          <input id="goalInput" placeholder="Goal" aria-label="Job goal">
-          <button type="submit">Create</button>
-        </form>
-        <div id="jobList" class="list"></div>
-      </section>
-
-      <section class="pane world-pane" aria-labelledby="worldHeading">
-        <div class="pane-heading">
-          <h2 id="worldHeading">World Query</h2>
-        </div>
-        <form id="worldForm" class="coordinate-form">
-          <label>Min X<input id="minX" value="0" aria-label="Min X"></label>
-          <label>Max X<input id="maxX" value="2" aria-label="Max X"></label>
-          <label>Min Y<input id="minY" value="64" aria-label="Min Y"></label>
-          <label>Max Y<input id="maxY" value="64" aria-label="Max Y"></label>
-          <label>Min Z<input id="minZ" value="0" aria-label="Min Z"></label>
-          <label>Max Z<input id="maxZ" value="2" aria-label="Max Z"></label>
-          <button type="submit">Query</button>
-        </form>
-        <div id="worldCells" class="cell-grid"></div>
-      </section>
-
-      <section class="pane scripts-pane" aria-labelledby="scriptsHeading">
-        <div class="pane-heading">
-          <h2 id="scriptsHeading">Scripts</h2>
-        </div>
-        <div id="scriptList" class="list"></div>
-      </section>
-
-      <section class="pane diagnostics-pane" aria-labelledby="diagnosticsHeading">
-        <div class="pane-heading">
-          <h2 id="diagnosticsHeading">Diagnostics</h2>
-        </div>
-        <div id="diagnosticsList" class="list"></div>
-      </section>
-      </section>
-
       <footer class="final-cta">
         <h2>First safe milestone: one turtle online, one lease, one inspect event.</h2>
-        <a class="button button-primary" href="#setup">Review setup</a>
+        <a class="button button-primary" href="/console">Open console</a>
       </footer>
     </main>
 
-    <script src="/app.js" type="module"></script>
+    <script src="/landing.js" type="module"></script>
   </body>
 </html>
+

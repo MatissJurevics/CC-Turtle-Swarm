@@ -265,20 +265,29 @@ test('WebSocket gateway completes commands from replayed turtle spool', () => {
   assert.equal(plane.commands.all()[0].status, 'succeeded');
 });
 
-test('HTTP server serves operator console static assets', async () => {
+test('HTTP server serves separate landing and console static assets', async () => {
   const plane = createControlPlane();
   const index = await callHttp(plane, { url: '/' });
+  const consolePage = await callHttp(plane, { url: '/console' });
   const styles = await callHttp(plane, { url: '/styles.css' });
-  const app = await callHttp(plane, { url: '/app.js' });
+  const landingScript = await callHttp(plane, { url: '/landing.js' });
+  const consoleScript = await callHttp(plane, { url: '/console.js' });
 
   assert.equal(index.statusCode, 200);
-  assert.match(index.body, /Operator Console/);
   assert.match(index.body, /Setup instructions/);
+  assert.match(index.body, /What the stack gives you/);
   assert.match(index.body, /docker compose up --build/);
+  assert.doesNotMatch(index.body, /<section class="shell"/);
+  assert.equal(consolePage.statusCode, 200);
+  assert.match(consolePage.body, /Operator Console/);
+  assert.match(consolePage.body, /<section class="shell"/);
+  assert.doesNotMatch(consolePage.body, /Setup instructions/);
   assert.equal(styles.statusCode, 200);
   assert.match(styles.body, /bento-grid/);
   assert.match(styles.body, /grid-auto-flow: dense/);
-  assert.equal(app.statusCode, 200);
-  assert.match(app.body, /\/api\/fleet/);
-  assert.match(app.body, /setupHostText/);
+  assert.match(styles.body, /console-page/);
+  assert.equal(landingScript.statusCode, 200);
+  assert.match(landingScript.body, /setupHostText/);
+  assert.equal(consoleScript.statusCode, 200);
+  assert.match(consoleScript.body, /\/api\/fleet/);
 });
