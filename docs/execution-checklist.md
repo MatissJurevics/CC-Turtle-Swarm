@@ -17,7 +17,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Event store with aggregate sequencing.
 - [x] Lease manager with TTL/conflict validation.
 - [x] Command queue with idempotency, dispatch, completion, and cancel.
-- [ ] Domain service that emits lifecycle events for leases and commands.
+- [x] Domain service that emits lifecycle events for leases and commands.
 - [x] Turtle read model projection.
 - [x] Job read model projection.
 - [x] World model projection.
@@ -73,22 +73,22 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 6. Script Registry
 
-- [ ] Manifest schema validation.
-- [ ] Source bundle hashing.
-- [ ] Permission validation.
-- [ ] Approval/revocation state.
-- [ ] Runtime limit model.
+- [x] Manifest schema validation.
+- [x] Source bundle hashing.
+- [x] Permission validation.
+- [x] Approval/revocation state.
+- [x] Runtime limit model.
 - [ ] Executor contract for turtle runtime.
-- [ ] Tests for invalid manifest, hash mismatch, permission denial, revocation.
+- [x] Tests for invalid manifest, hash mismatch, permission denial, revocation.
 
 ## 7. Scheduler And Jobs
 
-- [ ] Job model and lifecycle.
-- [ ] Goal-to-plan scaffold.
-- [ ] Turtle capability matching.
-- [ ] Fuel/inventory/location scoring.
+- [x] Job model and lifecycle.
+- [x] Goal-to-plan scaffold.
+- [x] Turtle capability matching.
+- [x] Fuel/inventory/location scoring.
 - [ ] Cell reservations.
-- [ ] Blocked-state reasons.
+- [x] Blocked-state reasons.
 - [ ] Saga-style recovery hooks.
 
 ## 8. MCP Adapter
@@ -113,19 +113,20 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 10. Factory
 
-- [ ] Disabled-by-default factory service.
+- [x] Disabled-by-default factory service.
 - [ ] Survival provider contract.
 - [ ] Admin provider contract.
-- [ ] Factory bay lease.
+- [x] Factory bay lease.
 - [ ] Material/permission checks.
-- [ ] Provisioning workflow state machine.
+- [x] Provisioning workflow state machine.
 - [ ] Failure cleanup.
 
 ## 11. Validation
 
 - [x] Node unit tests for event store, leases, commands, control-plane composition.
 - [x] Node unit tests for projections and world model.
-- [ ] Node unit tests for scripts, scheduler, factory, MCP.
+- [x] Node unit tests for scripts, scheduler, factory.
+- [ ] Node unit tests for MCP.
 - [ ] HTTP API integration tests.
 - [ ] WebSocket gateway integration tests.
 - [ ] Static UI smoke test.
