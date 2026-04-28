@@ -43,6 +43,14 @@ Print the startup file for copy/paste:
 npm run paste:startup
 ```
 
+Run the current validation suite:
+
+```sh
+npm run validate
+```
+
+`validate` runs Node tests, builds the turtle bundle, checks core docs, and runs Lua syntax validation when `luac` is available.
+
 ## Safety Defaults
 
 - Turtles connect outbound to the server.
