@@ -1,6 +1,7 @@
 import { EventStore } from './event-store.js';
 import { LeaseManager } from './leases.js';
 import { CommandQueue } from './commands.js';
+import { buildReadModels } from './projections.js';
 
 export function createControlPlane() {
   const events = new EventStore();
@@ -11,6 +12,9 @@ export function createControlPlane() {
     events,
     leases,
     commands,
+    readModels() {
+      return buildReadModels(events);
+    },
     recordHeartbeat(turtleId, payload = {}) {
       return events.append({
         type: 'event.turtle.heartbeat',
@@ -31,4 +35,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     components: Object.keys(plane)
   }));
 }
-

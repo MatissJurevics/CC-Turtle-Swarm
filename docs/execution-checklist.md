@@ -10,7 +10,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Add QA validation matrix.
 - [x] Add in-game setup guide.
 - [x] Add repeatable validation command.
-- [ ] Keep `npm run validate` passing after every feature.
+- [x] Keep `npm run validate` passing after every feature.
 
 ## 1. Control Plane Kernel
 
@@ -18,10 +18,10 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Lease manager with TTL/conflict validation.
 - [x] Command queue with idempotency, dispatch, completion, and cancel.
 - [ ] Domain service that emits lifecycle events for leases and commands.
-- [ ] Turtle read model projection.
-- [ ] Job read model projection.
-- [ ] World model projection.
-- [ ] Diagnostics query helpers.
+- [x] Turtle read model projection.
+- [x] Job read model projection.
+- [x] World model projection.
+- [x] Diagnostics query helpers.
 
 ## 2. Turtle Runtime
 
@@ -64,12 +64,12 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 5. World Model
 
-- [ ] Cell identity by dimension/x/y/z.
-- [ ] Unknown/air/solid/liquid/entity/turtle occupancy.
-- [ ] Confidence and `last_seen_at`.
-- [ ] Inspection event projection.
-- [ ] Reservation overlay for path planning.
-- [ ] Query by bounding box.
+- [x] Cell identity by dimension/x/y/z.
+- [x] Unknown/air/solid/liquid/entity/turtle occupancy.
+- [x] Confidence and `last_seen_at`.
+- [x] Inspection event projection.
+- [x] Reservation overlay for path planning.
+- [x] Query by bounding box.
 
 ## 6. Script Registry
 
@@ -124,11 +124,10 @@ This checklist is the working contract for implementing the initial architecture
 ## 11. Validation
 
 - [x] Node unit tests for event store, leases, commands, control-plane composition.
-- [ ] Node unit tests for projections and world model.
+- [x] Node unit tests for projections and world model.
 - [ ] Node unit tests for scripts, scheduler, factory, MCP.
 - [ ] HTTP API integration tests.
 - [ ] WebSocket gateway integration tests.
 - [ ] Static UI smoke test.
 - [ ] Lua syntax validation when `luac` is available.
 - [ ] Manual CC: Tweaked smoke test checklist.
-
