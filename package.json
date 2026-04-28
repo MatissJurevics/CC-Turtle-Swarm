@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "bundle:turtle": "node scripts/build-turtle-bundle.mjs",
+    "paste:startup": "node scripts/render-turtle-paste.mjs",
     "test": "node --test",
     "start": "node server/src/index.js"
   },
@@ -11,4 +13,3 @@
     "node": ">=22"
   }
 }
-

@@ -27,6 +27,22 @@ turtle/
 5. Validate heartbeat, telemetry, and one safe command.
 6. Expand from one turtle to jobs, scripts, world model, and factory provisioning.
 
+## Setup Helpers
+
+Build a deployable turtle file tree:
+
+```sh
+npm run bundle:turtle
+```
+
+This writes `dist/turtle-bundle/` with `/startup.lua`, `/fleet/runtime/*.lua`, and a manifest showing where files belong on the turtle.
+
+Print the startup file for copy/paste:
+
+```sh
+npm run paste:startup
+```
+
 ## Safety Defaults
 
 - Turtles connect outbound to the server.
@@ -34,4 +50,3 @@ turtle/
 - Mutating operations require leases.
 - Raw arbitrary Lua execution is not exposed as an operator tool.
 - Events are append-only and suitable for replay/debugging.
-
