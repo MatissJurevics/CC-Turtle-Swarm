@@ -17,6 +17,7 @@ const staticFiles = new Map([
   ['/landing.js', { path: 'web/landing.js', contentType: 'text/javascript; charset=utf-8' }],
   ['/console.js', { path: 'web/console.js', contentType: 'text/javascript; charset=utf-8' }],
   ['/setup-command.js', { path: 'web/setup-command.js', contentType: 'text/javascript; charset=utf-8' }],
+  ['/map-view.js', { path: 'web/map-view.js', contentType: 'text/javascript; charset=utf-8' }],
   ['/styles.css', { path: 'web/styles.css', contentType: 'text/css; charset=utf-8' }],
   ['/turtle/install.lua', { path: 'turtle/install.lua', contentType: 'text/plain; charset=utf-8' }],
   ['/turtle/files/startup.lua', { path: 'turtle/startup.lua', contentType: 'text/plain; charset=utf-8' }],
@@ -28,6 +29,7 @@ const staticFiles = new Map([
   ['/turtle/files/runtime/watchdog.lua', { path: 'turtle/runtime/watchdog.lua', contentType: 'text/plain; charset=utf-8' }],
   ['/turtle/files/runtime/executor.lua', { path: 'turtle/runtime/executor.lua', contentType: 'text/plain; charset=utf-8' }],
   ['/turtle/files/runtime/odometry.lua', { path: 'turtle/runtime/odometry.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/scanner.lua', { path: 'turtle/runtime/scanner.lua', contentType: 'text/plain; charset=utf-8' }],
   ['/turtle/files/runtime/main.lua', { path: 'turtle/runtime/main.lua', contentType: 'text/plain; charset=utf-8' }]
 ]);
 

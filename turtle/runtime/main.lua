@@ -8,6 +8,7 @@ local transport = require("transport")
 local executor = require("executor")
 local watchdog = require("watchdog")
 local odometry = require("odometry")
+local scanner = require("scanner")
 
 local cfg, err = config_loader.load("/fleet/config.lua")
 if not cfg then
@@ -75,6 +76,7 @@ end
 local rt_actuator = actuator.new(runtime)
 local rt_executor = executor.new(runtime, rt_actuator)
 local rt_transport = transport.new(cfg, logger)
+local rt_scanner = scanner.new(runtime)
 
 local function send_spool()
   local events = runtime.events:all()
@@ -168,6 +170,9 @@ while true do
   if rt_transport:connect() then
     runtime:emit("event.turtle.heartbeat", runtime:observe())
     runtime.odometry:reconcile_gps(0.5)
+    if rt_scanner:due() then
+      runtime:emit("event.world.scanned", rt_scanner:scan())
+    end
     send_spool()
     rt_transport:send({ type = "command.next" })
     local message = rt_transport:receive(1)

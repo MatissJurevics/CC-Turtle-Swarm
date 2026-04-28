@@ -15,6 +15,7 @@ const files = [
   ['turtle/runtime/watchdog.lua', 'fleet/runtime/watchdog.lua'],
   ['turtle/runtime/executor.lua', 'fleet/runtime/executor.lua'],
   ['turtle/runtime/odometry.lua', 'fleet/runtime/odometry.lua'],
+  ['turtle/runtime/scanner.lua', 'fleet/runtime/scanner.lua'],
   ['turtle/runtime/main.lua', 'fleet/runtime/main.lua']
 ];
 

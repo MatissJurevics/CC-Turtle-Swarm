@@ -12,6 +12,7 @@ local files = {
   { path = "/fleet/runtime/watchdog.lua", url = "/turtle/files/runtime/watchdog.lua" },
   { path = "/fleet/runtime/executor.lua", url = "/turtle/files/runtime/executor.lua" },
   { path = "/fleet/runtime/odometry.lua", url = "/turtle/files/runtime/odometry.lua" },
+  { path = "/fleet/runtime/scanner.lua", url = "/turtle/files/runtime/scanner.lua" },
   { path = "/fleet/runtime/main.lua", url = "/turtle/files/runtime/main.lua" }
 }
 

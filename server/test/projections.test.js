@@ -105,6 +105,44 @@ test('world model projects action observations into cells', () => {
   assert.equal(cell.lastSeenBy, 'turtle-001');
 });
 
+test('world model projects turtle scan observations into surrounding cells', () => {
+  const store = new EventStore();
+  store.append({
+    type: 'event.world.scanned',
+    aggregateType: 'turtle',
+    aggregateId: 'turtle-001',
+    turtleId: 'turtle-001',
+    createdAt: '2026-04-28T12:01:00.000Z',
+    payload: {
+      origin: { position: [10, 64, 10], facing: 'north', dimension: 'overworld' },
+      after: { position: [10, 64, 10], facing: 'north', dimension: 'overworld' },
+      observations: [
+        {
+          direction: 'north',
+          cell: { dimension: 'overworld', x: 10, y: 64, z: 9 },
+          block: { name: 'minecraft:stone', state: {} }
+        },
+        {
+          direction: 'up',
+          cell: { dimension: 'overworld', x: 10, y: 65, z: 10 },
+          occupancy: 'air',
+          block: { name: 'minecraft:air', state: {} }
+        }
+      ]
+    }
+  });
+
+  const models = buildReadModels(store);
+  const north = models.world.getCell({ x: 10, y: 64, z: 9 });
+  const up = models.world.getCell({ x: 10, y: 65, z: 10 });
+  const turtle = models.fleet.turtle('turtle-001');
+
+  assert.equal(north.occupancy, 'solid');
+  assert.equal(up.occupancy, 'air');
+  assert.equal(turtle.lastScanCount, 2);
+  assert.equal(turtle.lastScanAt, '2026-04-28T12:01:00.000Z');
+});
+
 test('world model supports reservations and detects conflicts', () => {
   const world = new WorldModel();
   const first = world.reserve(
@@ -169,4 +207,3 @@ test('direction helpers track facing and adjacent cells', () => {
     { dimension: 'overworld', x: 1, y: 64, z: 0 }
   );
 });
-

@@ -29,121 +29,156 @@
         <p id="consoleHint">Select a turtle, acquire a lease, then run one bounded action.</p>
       </header>
 
-      <section class="console-onboarding" aria-labelledby="pairTurtleHeading" data-setup-command>
-        <div>
-          <p class="eyebrow">One-paste setup</p>
-          <h2 id="pairTurtleHeading">Pair a new turtle</h2>
-          <p>Paste this in a turtle terminal. The installer writes config, downloads runtime files, and reboots into the fleet.</p>
-        </div>
-        <div class="install-panel">
-          <div class="setup-command-controls">
-            <label>
-              Server reachable from Minecraft
-              <input data-install-host aria-label="Server reachable from Minecraft">
-            </label>
-            <label>
-              Turtle ID
-              <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
-            </label>
+      <div class="console-tabs" role="tablist" aria-label="Console views">
+        <button class="is-active" type="button" role="tab" aria-selected="true" data-console-tab="operations">Operations</button>
+        <button type="button" role="tab" aria-selected="false" data-console-tab="map">3D Area</button>
+      </div>
+
+      <section data-console-panel="operations">
+        <section class="console-onboarding" aria-labelledby="pairTurtleHeading" data-setup-command>
+          <div>
+            <p class="eyebrow">One-paste setup</p>
+            <h2 id="pairTurtleHeading">Pair a new turtle</h2>
+            <p>Paste this in a turtle terminal. The installer writes config, downloads runtime files, and reboots into the fleet.</p>
           </div>
-          <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
-          <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
-        </div>
+          <div class="install-panel">
+            <div class="setup-command-controls">
+              <label>
+                Server reachable from Minecraft
+                <input data-install-host aria-label="Server reachable from Minecraft">
+              </label>
+              <label>
+                Turtle ID
+                <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
+              </label>
+            </div>
+            <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
+            <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
+          </div>
+        </section>
+
+        <section class="shell" aria-label="Operator console">
+          <section class="pane fleet-pane" aria-labelledby="fleetHeading">
+            <div class="pane-heading">
+              <h2 id="fleetHeading">Fleet</h2>
+              <button id="refreshButton" type="button">Refresh</button>
+            </div>
+            <div class="metrics" id="fleetMetrics"></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Turtle</th>
+                    <th>Status</th>
+                    <th>Fuel</th>
+                    <th>Runtime</th>
+                  </tr>
+                </thead>
+                <tbody id="turtleRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="pane detail-pane" aria-labelledby="detailHeading">
+            <div class="pane-heading">
+              <h2 id="detailHeading">Turtle Detail</h2>
+              <span id="selectedTurtleLabel">none selected</span>
+            </div>
+            <div class="detail-grid">
+              <div>
+                <h3>Inventory</h3>
+                <div id="inventoryGrid" class="inventory-grid"></div>
+              </div>
+              <div>
+                <h3>Manual Control</h3>
+                <div class="control-row">
+                  <input id="holderInput" value="operator" aria-label="Lease holder">
+                  <button id="leaseButton" type="button">Lease</button>
+                </div>
+                <button id="clearQueueButton" type="button">Clear Queue</button>
+                <div class="control-pad">
+                  <button data-action="inspect" type="button">Inspect</button>
+                  <button data-action="forward" type="button">Forward</button>
+                  <button data-action="turnLeft" type="button">Left</button>
+                  <button data-action="turnRight" type="button">Right</button>
+                  <button data-action="up" type="button">Up</button>
+                  <button data-action="down" type="button">Down</button>
+                </div>
+                <p id="leaseStatus" class="muted">No active lease</p>
+                <p id="actionStatus" class="muted">Actions require a selected turtle and lease.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="pane jobs-pane" aria-labelledby="jobsHeading">
+            <div class="pane-heading">
+              <h2 id="jobsHeading">Jobs</h2>
+            </div>
+            <form id="jobForm" class="inline-form">
+              <input id="goalInput" placeholder="Goal" aria-label="Job goal">
+              <button type="submit">Create</button>
+            </form>
+            <div id="jobList" class="list"></div>
+          </section>
+
+          <section class="pane world-pane" aria-labelledby="worldHeading">
+            <div class="pane-heading">
+              <h2 id="worldHeading">World Query</h2>
+            </div>
+            <form id="worldForm" class="coordinate-form">
+              <label>Min X<input id="minX" value="0" aria-label="Min X"></label>
+              <label>Max X<input id="maxX" value="2" aria-label="Max X"></label>
+              <label>Min Y<input id="minY" value="64" aria-label="Min Y"></label>
+              <label>Max Y<input id="maxY" value="64" aria-label="Max Y"></label>
+              <label>Min Z<input id="minZ" value="0" aria-label="Min Z"></label>
+              <label>Max Z<input id="maxZ" value="2" aria-label="Max Z"></label>
+              <button type="submit">Query</button>
+            </form>
+            <div id="worldCells" class="cell-grid"></div>
+          </section>
+
+          <section class="pane scripts-pane" aria-labelledby="scriptsHeading">
+            <div class="pane-heading">
+              <h2 id="scriptsHeading">Scripts</h2>
+            </div>
+            <div id="scriptList" class="list"></div>
+          </section>
+
+          <section class="pane diagnostics-pane" aria-labelledby="diagnosticsHeading">
+            <div class="pane-heading">
+              <h2 id="diagnosticsHeading">Diagnostics</h2>
+            </div>
+            <div id="diagnosticsList" class="list"></div>
+          </section>
+        </section>
       </section>
 
-      <section class="shell" aria-label="Operator console">
-        <section class="pane fleet-pane" aria-labelledby="fleetHeading">
-          <div class="pane-heading">
-            <h2 id="fleetHeading">Fleet</h2>
-            <button id="refreshButton" type="button">Refresh</button>
+      <section class="map-panel" data-console-panel="map" hidden aria-label="3D surrounding area">
+        <div class="map-toolbar">
+          <div>
+            <p class="eyebrow">World model</p>
+            <h2>3D Area View</h2>
+            <p>Scanned cells are saved as events and rendered around selected turtles.</p>
           </div>
-          <div class="metrics" id="fleetMetrics"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Turtle</th>
-                  <th>Status</th>
-                  <th>Fuel</th>
-                  <th>Runtime</th>
-                </tr>
-              </thead>
-              <tbody id="turtleRows"></tbody>
-            </table>
+          <div class="map-controls">
+            <label>
+              Radius
+              <input id="mapRadius" type="number" min="2" max="64" value="12">
+            </label>
+            <button id="mapRefreshButton" type="button">Refresh Map</button>
+            <span id="mapStatus">not loaded</span>
           </div>
-        </section>
-
-        <section class="pane detail-pane" aria-labelledby="detailHeading">
-          <div class="pane-heading">
-            <h2 id="detailHeading">Turtle Detail</h2>
-            <span id="selectedTurtleLabel">none selected</span>
+        </div>
+        <div class="map-layout">
+          <aside class="map-sidebar" aria-label="Turtle map selection">
+            <h3>Turtles</h3>
+            <div id="mapTurtleFilters" class="map-filter-list"></div>
+          </aside>
+          <div class="map-stage">
+            <canvas id="worldMapCanvas" aria-label="3D turtle area map"></canvas>
+            <div id="mapTooltip" class="map-tooltip" hidden></div>
           </div>
-          <div class="detail-grid">
-            <div>
-              <h3>Inventory</h3>
-              <div id="inventoryGrid" class="inventory-grid"></div>
-            </div>
-            <div>
-              <h3>Manual Control</h3>
-              <div class="control-row">
-                <input id="holderInput" value="operator" aria-label="Lease holder">
-                <button id="leaseButton" type="button">Lease</button>
-              </div>
-              <button id="clearQueueButton" type="button">Clear Queue</button>
-              <div class="control-pad">
-                <button data-action="inspect" type="button">Inspect</button>
-                <button data-action="forward" type="button">Forward</button>
-                <button data-action="turnLeft" type="button">Left</button>
-                <button data-action="turnRight" type="button">Right</button>
-                <button data-action="up" type="button">Up</button>
-                <button data-action="down" type="button">Down</button>
-              </div>
-              <p id="leaseStatus" class="muted">No active lease</p>
-              <p id="actionStatus" class="muted">Actions require a selected turtle and lease.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="pane jobs-pane" aria-labelledby="jobsHeading">
-          <div class="pane-heading">
-            <h2 id="jobsHeading">Jobs</h2>
-          </div>
-          <form id="jobForm" class="inline-form">
-            <input id="goalInput" placeholder="Goal" aria-label="Job goal">
-            <button type="submit">Create</button>
-          </form>
-          <div id="jobList" class="list"></div>
-        </section>
-
-        <section class="pane world-pane" aria-labelledby="worldHeading">
-          <div class="pane-heading">
-            <h2 id="worldHeading">World Query</h2>
-          </div>
-          <form id="worldForm" class="coordinate-form">
-            <label>Min X<input id="minX" value="0" aria-label="Min X"></label>
-            <label>Max X<input id="maxX" value="2" aria-label="Max X"></label>
-            <label>Min Y<input id="minY" value="64" aria-label="Min Y"></label>
-            <label>Max Y<input id="maxY" value="64" aria-label="Max Y"></label>
-            <label>Min Z<input id="minZ" value="0" aria-label="Min Z"></label>
-            <label>Max Z<input id="maxZ" value="2" aria-label="Max Z"></label>
-            <button type="submit">Query</button>
-          </form>
-          <div id="worldCells" class="cell-grid"></div>
-        </section>
-
-        <section class="pane scripts-pane" aria-labelledby="scriptsHeading">
-          <div class="pane-heading">
-            <h2 id="scriptsHeading">Scripts</h2>
-          </div>
-          <div id="scriptList" class="list"></div>
-        </section>
-
-        <section class="pane diagnostics-pane" aria-labelledby="diagnosticsHeading">
-          <div class="pane-heading">
-            <h2 id="diagnosticsHeading">Diagnostics</h2>
-          </div>
-          <div id="diagnosticsList" class="list"></div>
-        </section>
+        </div>
       </section>
     </main>
 

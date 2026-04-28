@@ -70,6 +70,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Unknown/air/solid/liquid/entity/turtle occupancy.
 - [x] Confidence and `last_seen_at`.
 - [x] Inspection event projection.
+- [x] Continuous turtle scan event projection.
 - [x] Reservation overlay for path planning.
 - [x] Query by bounding box.
 
@@ -111,6 +112,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Manual control pad with lease status.
 - [x] Job board.
 - [x] World cell query/debug view.
+- [x] 3D area tab with turtle selector, scanned blocks, nearby turtles, and hover details.
 - [x] Script registry view.
 - [x] Diagnostics view.
 - [x] Responsive layout smoke test.
@@ -134,5 +136,6 @@ This checklist is the working contract for implementing the initial architecture
 - [x] HTTP API integration tests.
 - [x] WebSocket gateway integration tests.
 - [x] Static UI smoke test.
+- [x] Browser smoke test for console 3D area fallback rendering.
 - [x] Lua syntax validation when `luac` or `nix-shell -p lua` is available.
 - [x] Manual CC: Tweaked smoke test checklist.

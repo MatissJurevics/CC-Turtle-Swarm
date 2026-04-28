@@ -44,6 +44,18 @@ export function observedCellFromDirection(origin, direction) {
   if (direction === 'down') {
     return { dimension, x, y: y - 1, z };
   }
+  if (direction === 'north') {
+    return { dimension, x, y, z: z - 1 };
+  }
+  if (direction === 'south') {
+    return { dimension, x, y, z: z + 1 };
+  }
+  if (direction === 'east') {
+    return { dimension, x: x + 1, y, z };
+  }
+  if (direction === 'west') {
+    return { dimension, x: x - 1, y, z };
+  }
   const offset = forwardOffset(origin.facing);
   return {
     dimension,
@@ -64,6 +76,9 @@ export function occupancyFromObservation(observation) {
     return observation.block.name.includes('water') || observation.block.name.includes('lava')
       ? 'liquid'
       : 'solid';
+  }
+  if (observation?.error?.code === 'no_block') {
+    return 'air';
   }
   if (observation?.success === false) {
     return 'unknown';
@@ -100,6 +115,15 @@ export class FleetProjection {
       }
       if (event.payload.success === false) {
         turtle.lastError = event.payload.error ?? { code: 'action_failed' };
+      }
+    }
+    if (event.type === 'event.world.scanned') {
+      turtle.status = 'online';
+      turtle.lastScanAt = event.createdAt;
+      turtle.lastScanCount = event.payload.observations?.length ?? 0;
+      turtle.updatedAt = event.createdAt;
+      if (event.payload.after || event.payload.origin) {
+        Object.assign(turtle, this.#telemetryFields(event.payload.after ?? event.payload.origin));
       }
     }
     if (event.type === 'event.turtle.quarantined') {
@@ -148,6 +172,8 @@ export class FleetProjection {
         activeJobId: null,
         activeCommandId: null,
         lastError: null,
+        lastScanAt: null,
+        lastScanCount: 0,
         updatedAt: null
       });
     }
@@ -251,6 +277,9 @@ export class WorldModel {
     if (event.type === 'event.action.completed') {
       this.#applyActionCompleted(event);
     }
+    if (event.type === 'event.world.scanned') {
+      this.#applyWorldScanned(event);
+    }
     if (event.type === 'event.world.cell_reserved') {
       this.reserve(event.payload.cell, event.payload.reservation, event.createdAt);
     }
@@ -350,6 +379,16 @@ export class WorldModel {
     for (const observation of event.payload.observations ?? []) {
       const explicitCell = observation.cell;
       const inferredCell = explicitCell ?? observedCellFromDirection(event.payload.before, observation.direction);
+      if (inferredCell) {
+        this.upsertCell(inferredCell, observation, event);
+      }
+    }
+  }
+
+  #applyWorldScanned(event) {
+    for (const observation of event.payload.observations ?? []) {
+      const explicitCell = observation.cell;
+      const inferredCell = explicitCell ?? observedCellFromDirection(event.payload.origin, observation.direction);
       if (inferredCell) {
         this.upsertCell(inferredCell, observation, event);
       }

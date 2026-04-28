@@ -1,10 +1,13 @@
 import { initSetupCommand } from '/setup-command.js';
+import { initWorldMap } from '/map-view.js';
 
 const state = {
   fleet: { turtles: [], jobs: [], diagnostics: [], commands: [] },
   selectedTurtleId: null,
   lease: null,
-  toastTimer: null
+  toastTimer: null,
+  activeTab: 'operations',
+  map: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -137,6 +140,29 @@ function setNotice(message) {
   state.toastTimer = setTimeout(renderDetail, 2400);
 }
 
+function setStatus(label, detail) {
+  $('#healthStatus').textContent = label;
+  $('#updatedAt').textContent = detail;
+}
+
+function setConsoleTab(tabName) {
+  state.activeTab = tabName;
+  $$('[data-console-tab]').forEach((button) => {
+    const active = button.dataset.consoleTab === tabName;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  $$('[data-console-panel]').forEach((panel) => {
+    panel.hidden = panel.dataset.consolePanel !== tabName;
+  });
+  if (tabName === 'map') {
+    window.history.replaceState(null, '', '#map');
+    state.map?.activate();
+  } else if (window.location.hash === '#map') {
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+}
+
 async function refresh() {
   try {
     $('#healthStatus').textContent = 'syncing';
@@ -266,6 +292,11 @@ async function queryWorld(event) {
 }
 
 document.addEventListener('click', (event) => {
+  const tab = event.target.closest('[data-console-tab]')?.dataset.consoleTab;
+  if (tab) {
+    setConsoleTab(tab);
+    return;
+  }
   const row = event.target.closest('[data-turtle-id]');
   if (row) {
     state.selectedTurtleId = row.dataset.turtleId;
@@ -286,10 +317,9 @@ $('#jobForm').addEventListener('submit', createJob);
 $('#worldForm').addEventListener('submit', queryWorld);
 
 initSetupCommand({
-  onStatus(label, detail) {
-    $('#healthStatus').textContent = label;
-    $('#updatedAt').textContent = detail;
-  }
+  onStatus: setStatus
 });
+state.map = initWorldMap({ api, onStatus: setStatus });
 refresh();
+setConsoleTab(window.location.hash === '#map' ? 'map' : 'operations');
 setInterval(refresh, 5000);

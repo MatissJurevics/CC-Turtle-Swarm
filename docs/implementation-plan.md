@@ -182,14 +182,16 @@ Implementation steps:
 
 1. Define cell identity: dimension, x, y, z.
 2. Project inspect events into cells.
-3. Track unknown, air, solid, liquid, entity, turtle.
-4. Track confidence and stale timestamps.
-5. Add reservation overlays for path planning.
+3. Project continuous turtle scan events into adjacent cells.
+4. Track unknown, air, solid, liquid, entity, turtle.
+5. Track confidence and stale timestamps.
+6. Add reservation overlays for path planning.
 
 Acceptance criteria:
 
 - Never-observed cells read as unknown.
 - Inspect success updates the target cell.
+- Periodic turtle scans update surrounding observed cells.
 - Old observations remain visible as stale.
 - Reservations block conflicting planners.
 
@@ -332,4 +334,3 @@ Validation:
 npm test -- server/test/factory.test.js
 in-game smoke: provision one turtle in dedicated bay
 ```
-

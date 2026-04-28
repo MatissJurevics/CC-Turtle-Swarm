@@ -273,9 +273,11 @@ test('HTTP server serves separate landing and console static assets', async () =
   const landingScript = await callHttp(plane, { url: '/landing.js' });
   const consoleScript = await callHttp(plane, { url: '/console.js' });
   const setupScript = await callHttp(plane, { url: '/setup-command.js' });
+  const mapScript = await callHttp(plane, { url: '/map-view.js' });
   const setup = await callHttp(plane, { url: '/api/setup' });
   const installer = await callHttp(plane, { url: '/turtle/install.lua' });
   const startup = await callHttp(plane, { url: '/turtle/files/startup.lua' });
+  const scanner = await callHttp(plane, { url: '/turtle/files/runtime/scanner.lua' });
   const runtime = await callHttp(plane, { url: '/turtle/files/runtime/main.lua' });
 
   assert.equal(index.statusCode, 200);
@@ -288,6 +290,8 @@ test('HTTP server serves separate landing and console static assets', async () =
   assert.equal(consolePage.statusCode, 200);
   assert.match(consolePage.body, /Operator Console/);
   assert.match(consolePage.body, /Pair a new turtle/);
+  assert.match(consolePage.body, /3D Area/);
+  assert.match(consolePage.body, /worldMapCanvas/);
   assert.match(consolePage.body, /<section class="shell"/);
   assert.doesNotMatch(consolePage.body, /Setup instructions/);
   assert.equal(styles.statusCode, 200);
@@ -298,8 +302,12 @@ test('HTTP server serves separate landing and console static assets', async () =
   assert.match(landingScript.body, /setupHostText/);
   assert.equal(consoleScript.statusCode, 200);
   assert.match(consoleScript.body, /\/api\/fleet/);
+  assert.match(consoleScript.body, /initWorldMap/);
   assert.equal(setupScript.statusCode, 200);
   assert.match(setupScript.body, /wget run/);
+  assert.equal(mapScript.statusCode, 200);
+  assert.match(mapScript.body, /three.module.js/);
+  assert.match(mapScript.body, /Raycaster/);
   assert.equal(setup.statusCode, 200);
   assert.equal(JSON.parse(setup.body).installPath, '/turtle/install.lua');
   assert.equal(JSON.parse(setup.body).pairingToken, 'dev-pairing-token');
@@ -308,6 +316,9 @@ test('HTTP server serves separate landing and console static assets', async () =
   assert.match(installer.body, /os\.reboot/);
   assert.equal(startup.statusCode, 200);
   assert.match(startup.body, /runtime_entry/);
+  assert.equal(scanner.statusCode, 200);
+  assert.match(scanner.body, /event.world.scanned|scan/);
   assert.equal(runtime.statusCode, 200);
   assert.match(runtime.body, /fleet runtime starting/);
+  assert.match(runtime.body, /scanner/);
 });

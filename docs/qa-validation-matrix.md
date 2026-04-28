@@ -84,6 +84,7 @@ Failed
 | Unknown cell | Unit | Never-observed cell reads as unknown | Automated |
 | Known air | Unit/in-game | Empty inspected cell records air | Automated |
 | Known solid | Unit/in-game | Block inspected as solid with block name | Automated |
+| Continuous scan projection | Unit/in-game | Turtle scan events update all observed adjacent cells | Automated |
 | Stale observation | Unit | Old cells expose `last_seen_at` and confidence | Automated |
 | Reservation | Unit | Reserved cell blocks conflicting path plan | Automated |
 
@@ -127,6 +128,9 @@ Failed
 | Turtle detail | Manual/browser | Inventory, logs, and current command render | Passed |
 | Manual lease UI | Manual/browser | Controls disabled without lease | Passed |
 | World view states | Manual/browser | Unknown, known, and stale cells are distinct | Passed |
+| 3D area tab | Browser/integration | Console exposes a separate 3D Area tab backed by the world API | Automated |
+| Multi-turtle fit | Manual/browser | Selected turtles and nearby scanned cells fit into the view together | Passed |
+| Turtle hover details | Manual/browser | Hovering a rendered turtle shows status, position, fuel, job, runtime, and last scan | Passed |
 | Error visibility | Manual/browser | Recent failures are discoverable | Passed |
 | Turtle setup command | Browser/integration | Console renders copyable `wget run` command with current host and token | Automated |
 | Mobile/desktop layout | Manual/browser | Operator-critical text does not overlap | Passed |
