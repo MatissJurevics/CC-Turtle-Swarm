@@ -136,3 +136,4 @@ The factory creates normal registered turtles that join the same protocol as han
 | Position drifts | Odometry without GPS reconciliation | Run GPS check and inspect recent movement events |
 | Script denied | Permission manifest mismatch | Validate script manifest against requested action |
 
+See `docs/manual-smoke-test.md` for the full boot, heartbeat, lease, inspect, and reconnect validation procedure.

@@ -49,6 +49,37 @@ export class Scheduler {
     return 'no_matching_capabilities';
   }
 
+  reserveCells({ world, cells, jobId, ttlMs = 60_000, now = new Date().toISOString() }) {
+    const reservedUntil = new Date(Date.parse(now) + ttlMs).toISOString();
+    const reservations = [];
+    for (const cell of cells) {
+      const result = world.reserve(cell, { reservedByJobId: jobId, reservedUntil }, now);
+      if (!result.ok) {
+        return { ok: false, reason: result.reason, reservations, conflict: result.reservation };
+      }
+      reservations.push(result.reservation);
+    }
+    return { ok: true, reservations };
+  }
+
+  recoveryPlan({ failureCode, jobId }) {
+    const common = [
+      { kind: 'pause_job', jobId },
+      { kind: 'release_expired_leases', jobId },
+      { kind: 'record_diagnostics', jobId }
+    ];
+    if (failureCode === 'blocked') {
+      return [...common, { kind: 'inspect_blocking_cell', jobId }, { kind: 'replan_path', jobId }];
+    }
+    if (failureCode === 'low_fuel' || failureCode === 'fuel_below_minimum') {
+      return [...common, { kind: 'route_to_refuel', jobId }];
+    }
+    if (failureCode === 'inventory_full') {
+      return [...common, { kind: 'route_to_depot', jobId }];
+    }
+    return [...common, { kind: 'request_human_intervention', jobId }];
+  }
+
   #score(turtle, requirements) {
     const fuelScore = Math.min(turtle.fuel ?? 0, requirements.minFuel ?? 0);
     const idleScore = turtle.activeJobId ? 0 : 20;
@@ -56,4 +87,3 @@ export class Scheduler {
     return fuelScore + idleScore + errorPenalty;
   }
 }
-

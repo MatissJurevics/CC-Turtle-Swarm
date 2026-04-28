@@ -36,7 +36,7 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Action lease/precondition enforcement.
 - [x] Watchdog and cooperative stop.
 - [x] Restricted script execution environment.
-- [ ] In-game smoke procedure for boot, heartbeat, inspect.
+- [x] In-game smoke procedure for boot, heartbeat, inspect.
 
 ## 3. Gateway Transport
 
@@ -87,9 +87,9 @@ This checklist is the working contract for implementing the initial architecture
 - [x] Goal-to-plan scaffold.
 - [x] Turtle capability matching.
 - [x] Fuel/inventory/location scoring.
-- [ ] Cell reservations.
+- [x] Cell reservations.
 - [x] Blocked-state reasons.
-- [ ] Saga-style recovery hooks.
+- [x] Saga-style recovery hooks.
 
 ## 8. MCP Adapter
 
@@ -114,12 +114,12 @@ This checklist is the working contract for implementing the initial architecture
 ## 10. Factory
 
 - [x] Disabled-by-default factory service.
-- [ ] Survival provider contract.
-- [ ] Admin provider contract.
+- [x] Survival provider contract.
+- [x] Admin provider contract.
 - [x] Factory bay lease.
-- [ ] Material/permission checks.
+- [x] Material/permission checks.
 - [x] Provisioning workflow state machine.
-- [ ] Failure cleanup.
+- [x] Failure cleanup.
 
 ## 11. Validation
 
@@ -131,4 +131,4 @@ This checklist is the working contract for implementing the initial architecture
 - [x] WebSocket gateway integration tests.
 - [x] Static UI smoke test.
 - [x] Lua syntax validation when `luac` or `nix-shell -p lua` is available.
-- [ ] Manual CC: Tweaked smoke test checklist.
+- [x] Manual CC: Tweaked smoke test checklist.

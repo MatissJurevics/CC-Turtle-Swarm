@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Scheduler } from '../src/scheduler.js';
+import { WorldModel } from '../src/projections.js';
 
 test('plans mining and survey goals into job steps', () => {
   const scheduler = new Scheduler();
@@ -35,3 +36,32 @@ test('returns actionable blocked reasons', () => {
   );
 });
 
+test('reserves cells through world model and reports conflicts', () => {
+  const scheduler = new Scheduler();
+  const world = new WorldModel();
+  const first = scheduler.reserveCells({
+    world,
+    jobId: 'job-001',
+    cells: [{ x: 0, y: 64, z: 0 }],
+    now: '2026-04-28T12:00:00.000Z'
+  });
+  const second = scheduler.reserveCells({
+    world,
+    jobId: 'job-002',
+    cells: [{ x: 0, y: 64, z: 0 }],
+    now: '2026-04-28T12:00:01.000Z'
+  });
+
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, false);
+  assert.equal(second.reason, 'reservation_conflict');
+});
+
+test('builds saga-style recovery actions by failure type', () => {
+  const scheduler = new Scheduler();
+  const blocked = scheduler.recoveryPlan({ jobId: 'job-001', failureCode: 'blocked' });
+  const fuel = scheduler.recoveryPlan({ jobId: 'job-001', failureCode: 'low_fuel' });
+
+  assert.equal(blocked.some((step) => step.kind === 'replan_path'), true);
+  assert.equal(fuel.some((step) => step.kind === 'route_to_refuel'), true);
+});
