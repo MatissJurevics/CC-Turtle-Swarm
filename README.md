@@ -1,0 +1,37 @@
+# ComputerCraft Turtle Fleet
+
+Autonomous CC: Tweaked turtle fleet control stack.
+
+This repo is organized around a small supervised turtle runtime, a control-plane server, and operator-facing documentation. The architecture is event-first, lease-controlled, and observable: turtles execute wrapped actions, the server records events, and humans or agents operate through validated APIs instead of raw turtle access.
+
+## Project Layout
+
+```text
+docs/
+  architecture.md          Full architecture spec.
+  in-game-setup.md         Step-by-step CC: Tweaked setup.
+  qa-validation-matrix.md  Component validation checklist.
+server/
+  src/                     Control-plane scaffold.
+turtle/
+  startup.lua              Minimal installer/bootloader.
+  runtime/                 Supervised turtle runtime modules.
+```
+
+## MVP Path
+
+1. Run the control-plane server locally.
+2. Enable CC: Tweaked HTTP/WebSocket access for the server URL.
+3. Paste or deploy `turtle/startup.lua` on one turtle.
+4. Pair the turtle with the server.
+5. Validate heartbeat, telemetry, and one safe command.
+6. Expand from one turtle to jobs, scripts, world model, and factory provisioning.
+
+## Safety Defaults
+
+- Turtles connect outbound to the server.
+- Runtime actions go through wrappers.
+- Mutating operations require leases.
+- Raw arbitrary Lua execution is not exposed as an operator tool.
+- Events are append-only and suitable for replay/debugging.
+
