@@ -14,7 +14,8 @@ docs/
 server/
   src/                     Control-plane scaffold.
 turtle/
-  startup.lua              Minimal installer/bootloader.
+  install.lua              One-paste turtle installer served by the web app.
+  startup.lua              Minimal bootloader installed on turtles.
   runtime/                 Supervised turtle runtime modules.
 ```
 
@@ -22,12 +23,26 @@ turtle/
 
 1. Run the control-plane server locally.
 2. Enable CC: Tweaked HTTP/WebSocket access for the server URL.
-3. Paste or deploy `turtle/startup.lua` on one turtle.
-4. Pair the turtle with the server.
+3. Open the web console and copy the generated turtle install command.
+4. Paste the `wget run ...` command into one turtle.
 5. Validate heartbeat, telemetry, and one safe command.
 6. Expand from one turtle to jobs, scripts, world model, and factory provisioning.
 
 ## Setup Helpers
+
+The easiest turtle setup path is in the website:
+
+```text
+http://HOST:8787/console
+```
+
+Use the "Pair a new turtle" panel to copy a command shaped like:
+
+```lua
+wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001
+```
+
+The installer downloads `/startup.lua` and `/fleet/runtime/*.lua`, writes `/fleet/config.lua`, labels the turtle, and reboots it into the supervised runtime.
 
 Build a deployable turtle file tree:
 

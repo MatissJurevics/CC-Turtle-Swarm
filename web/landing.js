@@ -1,3 +1,5 @@
+import { initSetupCommand } from '/setup-command.js';
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
@@ -39,17 +41,8 @@ async function copyText(text) {
 function setupHostText() {
   const host = window.location.host || '127.0.0.1:8787';
   $('#gatewayHost').textContent = host;
+  $('#installHostPreview').textContent = host;
   $('#consoleHost').textContent = host;
-  const config = `return {
-  turtle_id = "fleet-dev-001",
-  fleet_url = "ws://${host}/turtle/ws",
-  pairing_token = "dev-pairing-token",
-  runtime_version = "0.1.0",
-  dimension = "overworld",
-  initial_facing = "north",
-  initial_position = nil
-}`;
-  $('#configSnippet').textContent = config;
 }
 
 function initAccordions() {
@@ -99,6 +92,7 @@ document.addEventListener('click', (event) => {
 });
 
 setupHostText();
+initSetupCommand({ onStatus: setStatus });
 initAccordions();
 refreshHealth();
 setInterval(refreshHealth, 5000);

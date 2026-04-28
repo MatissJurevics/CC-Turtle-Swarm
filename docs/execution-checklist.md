@@ -25,6 +25,8 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 2. Turtle Runtime
 
+- [x] One-paste `wget run` installer.
+- [x] Control-plane routes for installer and runtime Lua files.
 - [x] `/startup.lua` bootloader.
 - [x] Config loader.
 - [x] Local structured logger.
@@ -102,6 +104,8 @@ This checklist is the working contract for implementing the initial architecture
 
 ## 9. Operator Web UI
 
+- [x] Landing page setup command for turtles.
+- [x] Console page "Pair a new turtle" command panel.
 - [x] Fleet dashboard.
 - [x] Turtle detail.
 - [x] Manual control pad with lease status.

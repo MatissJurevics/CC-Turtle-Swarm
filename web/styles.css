@@ -403,9 +403,62 @@ h3 {
   line-height: 1.5;
 }
 
+.setup-command-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-command-card pre,
+.install-panel pre {
+  margin-top: 16px;
+  white-space: normal;
+}
+
 .setup-card pre {
   overflow-x: hidden;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.setup-card pre code,
+.install-panel pre code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.setup-command-card pre code,
+.install-panel pre code {
+  white-space: normal;
+}
+
+.setup-command-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.52fr);
+  gap: 10px;
+  margin-top: auto;
+}
+
+.setup-command-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.setup-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.setup-card-actions span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 
@@ -555,6 +608,40 @@ h3 {
 .console-page .shell {
   min-height: 720px;
   margin-bottom: 0;
+}
+
+.console-onboarding {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.44fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(184, 255, 116, 0.08), transparent 48%),
+    rgba(17, 21, 18, 0.9);
+  padding: 18px;
+}
+
+.console-onboarding h2 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.console-onboarding p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.install-panel {
+  min-width: 0;
+}
+
+.install-panel pre {
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .shell {
@@ -867,6 +954,7 @@ tbody tr:hover {
   .feature-list,
   .validation-section,
   .console-heading,
+  .console-onboarding,
   .final-cta {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);
@@ -929,6 +1017,24 @@ tbody tr:hover {
     border-radius: 14px;
   }
 
+  .console-onboarding {
+    width: calc(100vw - 48px);
+    max-width: calc(100vw - 48px);
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .console-onboarding p {
+    width: min(28ch, 100%);
+    overflow-wrap: anywhere;
+  }
+
+  .install-panel pre {
+    width: min(28ch, 100%);
+    max-width: 100%;
+  }
+
   .pane {
     padding: 16px;
   }
@@ -949,6 +1055,10 @@ tbody tr:hover {
   .setup-card-small {
     grid-column: span 1;
     grid-row: span 1;
+  }
+
+  .setup-command-controls {
+    grid-template-columns: 1fr;
   }
 
   .accordion-item,

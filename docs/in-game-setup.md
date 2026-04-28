@@ -46,11 +46,38 @@ Recommended first label:
 os.setComputerLabel("fleet-dev-001")
 ```
 
-## 4. Install Startup
+## 4. One-Paste Install
 
-Paste or upload `turtle/startup.lua` onto the turtle as `/startup.lua`.
+Open the web console:
 
-Set config values when prompted, or create `/fleet/config.lua` manually:
+```text
+http://HOST:PORT/console
+```
+
+Use the "Pair a new turtle" panel to set:
+
+```text
+- Server reachable from Minecraft
+- Turtle ID
+```
+
+Copy the generated command and paste it into the turtle terminal:
+
+```lua
+wget run http://HOST:PORT/turtle/install.lua http://HOST:PORT dev-pairing-token fleet-dev-001
+```
+
+The installer:
+
+```text
+- downloads /startup.lua
+- downloads /fleet/runtime/*.lua
+- writes /fleet/config.lua
+- labels the turtle
+- reboots into the supervised runtime
+```
+
+Manual fallback: paste or upload `turtle/startup.lua` onto the turtle as `/startup.lua`, copy the runtime files into `/fleet/runtime`, and create `/fleet/config.lua`:
 
 ```lua
 return {

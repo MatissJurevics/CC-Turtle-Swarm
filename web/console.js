@@ -1,3 +1,5 @@
+import { initSetupCommand } from '/setup-command.js';
+
 const state = {
   fleet: { turtles: [], jobs: [], diagnostics: [], commands: [] },
   selectedTurtleId: null,
@@ -283,6 +285,11 @@ $('#clearQueueButton').addEventListener('click', clearQueue);
 $('#jobForm').addEventListener('submit', createJob);
 $('#worldForm').addEventListener('submit', queryWorld);
 
+initSetupCommand({
+  onStatus(label, detail) {
+    $('#healthStatus').textContent = label;
+    $('#updatedAt').textContent = detail;
+  }
+});
 refresh();
 setInterval(refresh, 5000);
-

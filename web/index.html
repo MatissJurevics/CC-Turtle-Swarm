@@ -40,7 +40,7 @@
         <div class="hero-visual motion-image" aria-hidden="true">
           <div class="terminal-frame">
             <div class="terminal-line">docker compose up --build</div>
-            <div class="terminal-line">npm run bundle:turtle</div>
+            <div class="terminal-line">wget run http://<span id="installHostPreview">HOST</span>/turtle/install.lua</div>
             <div class="terminal-line">ws://<span id="gatewayHost">HOST</span>/turtle/ws</div>
             <div class="terminal-line success">heartbeat: waiting</div>
           </div>
@@ -50,21 +50,34 @@
       <section class="setup-bento" id="setupInstructions" aria-labelledby="setupHeading">
         <div class="section-heading">
           <h2 id="setupHeading">Setup instructions</h2>
-          <p>Use these steps when provisioning the first turtle or rebuilding a local test stack.</p>
+          <p>Start the server, paste one command in the turtle, then watch for heartbeat in the console.</p>
         </div>
         <div class="bento-grid">
-          <article class="setup-card setup-card-large motion-card">
+          <article class="setup-card setup-card-large setup-command-card motion-card" data-setup-command>
+            <h3>Paste into the turtle</h3>
+            <p>Open the turtle terminal and paste this one command. It downloads the installer, writes config, installs runtime files, labels the turtle, and reboots.</p>
+            <div class="setup-command-controls">
+              <label>
+                Server reachable from Minecraft
+                <input data-install-host aria-label="Server reachable from Minecraft">
+              </label>
+              <label>
+                Turtle ID
+                <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
+              </label>
+            </div>
+            <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
+            <div class="setup-card-actions">
+              <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
+              <span>Gateway: <code data-install-gateway>ws://HOST:8787/turtle/ws</code></span>
+            </div>
+          </article>
+          <article class="setup-card setup-card-small motion-card">
             <h3>Run the stack</h3>
             <p>Start the control plane, WebSocket gateway, API, MCP adapter surface, and operator console.</p>
             <pre><code>cp .env.example .env
 docker compose up --build</code></pre>
             <button class="copy-button" type="button" data-copy="cp .env.example .env&#10;docker compose up --build">Copy commands</button>
-          </article>
-          <article class="setup-card setup-card-small motion-card">
-            <h3>Build turtle files</h3>
-            <p>Create the `/startup.lua` and `/fleet/runtime` bundle.</p>
-            <pre><code>npm run bundle:turtle</code></pre>
-            <button class="copy-button" type="button" data-copy="npm run bundle:turtle">Copy</button>
           </article>
           <article class="setup-card setup-card-small motion-card">
             <h3>Open console</h3>
@@ -73,18 +86,11 @@ docker compose up --build</code></pre>
             <a class="button button-secondary compact" href="/console">Go to console</a>
           </article>
           <article class="setup-card setup-card-wide motion-card">
-            <h3>Turtle config</h3>
-            <p>Paste this shape into `/fleet/config.lua`, replacing `HOST` when Minecraft runs on another machine.</p>
-            <pre><code id="configSnippet">return {
-  turtle_id = "fleet-dev-001",
-  fleet_url = "ws://HOST:8787/turtle/ws",
-  pairing_token = "dev-pairing-token",
-  runtime_version = "0.1.0",
-  dimension = "overworld",
-  initial_facing = "north",
-  initial_position = nil
-}</code></pre>
-            <button class="copy-button" type="button" data-copy-target="configSnippet">Copy config</button>
+            <h3>Installer behavior</h3>
+            <p>The command fetches only from this control-plane server. It overwrites `/startup.lua`, `/fleet/runtime/*.lua`, and `/fleet/config.lua`, then reboots into the supervised runtime.</p>
+            <pre><code>/startup.lua
+/fleet/config.lua
+/fleet/runtime/main.lua</code></pre>
           </article>
         </div>
       </section>
@@ -167,4 +173,3 @@ docker compose up --build</code></pre>
     <script src="/landing.js" type="module"></script>
   </body>
 </html>
-

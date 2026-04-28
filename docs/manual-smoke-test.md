@@ -14,7 +14,7 @@ Run this after `npm run validate` passes and the server is reachable from Minecr
 3. Open the operator console at:
 
    ```text
-   http://HOST:8787/
+   http://HOST:8787/console
    ```
 
 4. Confirm `/health` returns:
@@ -23,15 +23,18 @@ Run this after `npm run validate` passes and the server is reachable from Minecr
    { "ok": true, "service": "computercraft-turtle-fleet" }
    ```
 
-## Turtle Files
+## Turtle Install
 
-1. Build the bundle:
+1. In the console, use "Pair a new turtle".
+2. Confirm the host is reachable from inside Minecraft.
+3. Copy the generated command. It should look like:
 
-   ```sh
-   npm run bundle:turtle
+   ```lua
+   wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001
    ```
 
-2. Copy the bundle into the turtle filesystem:
+4. Paste the command into the turtle terminal.
+5. Expected turtle filesystem after reboot:
 
    ```text
    /startup.lua
@@ -42,10 +45,11 @@ Run this after `npm run validate` passes and the server is reachable from Minecr
    /fleet/runtime/transport.lua
    /fleet/runtime/watchdog.lua
    /fleet/runtime/executor.lua
+   /fleet/runtime/odometry.lua
    /fleet/runtime/main.lua
    ```
 
-3. Edit `/fleet/config.lua` on the turtle:
+Manual fallback: build the bundle, copy the files above, and create `/fleet/config.lua`:
 
    ```lua
    return {
@@ -109,4 +113,3 @@ Run this after `npm run validate` passes and the server is reachable from Minecr
 - failure reasons are visible in diagnostics
 - no raw Lua or rednet command path is needed
 ```
-

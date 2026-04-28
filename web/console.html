@@ -29,6 +29,28 @@
         <p id="consoleHint">Select a turtle, acquire a lease, then run one bounded action.</p>
       </header>
 
+      <section class="console-onboarding" aria-labelledby="pairTurtleHeading" data-setup-command>
+        <div>
+          <p class="eyebrow">One-paste setup</p>
+          <h2 id="pairTurtleHeading">Pair a new turtle</h2>
+          <p>Paste this in a turtle terminal. The installer writes config, downloads runtime files, and reboots into the fleet.</p>
+        </div>
+        <div class="install-panel">
+          <div class="setup-command-controls">
+            <label>
+              Server reachable from Minecraft
+              <input data-install-host aria-label="Server reachable from Minecraft">
+            </label>
+            <label>
+              Turtle ID
+              <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
+            </label>
+          </div>
+          <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
+          <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
+        </div>
+      </section>
+
       <section class="shell" aria-label="Operator console">
         <section class="pane fleet-pane" aria-labelledby="fleetHeading">
           <div class="pane-heading">

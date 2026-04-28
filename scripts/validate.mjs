@@ -44,9 +44,11 @@ await exists('Docker Compose docs', 'docs/docker-compose.md');
 await exists('environment example', '.env.example');
 await exists('turtle bundle manifest', 'dist/turtle-bundle/manifest.json');
 await exists('turtle startup bundle', 'dist/turtle-bundle/startup.lua');
+await exists('turtle web installer', 'turtle/install.lua');
 
 const luac = spawnSync('luac', ['-v'], { cwd: root, encoding: 'utf8', stdio: 'pipe' });
 const luaFiles = [
+  'turtle/install.lua',
   'turtle/startup.lua',
   'turtle/runtime/config.lua',
   'turtle/runtime/logger.lua',

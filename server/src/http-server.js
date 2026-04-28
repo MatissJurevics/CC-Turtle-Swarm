@@ -16,7 +16,19 @@ const staticFiles = new Map([
   ['/console.html', { path: 'web/console.html', contentType: 'text/html; charset=utf-8' }],
   ['/landing.js', { path: 'web/landing.js', contentType: 'text/javascript; charset=utf-8' }],
   ['/console.js', { path: 'web/console.js', contentType: 'text/javascript; charset=utf-8' }],
-  ['/styles.css', { path: 'web/styles.css', contentType: 'text/css; charset=utf-8' }]
+  ['/setup-command.js', { path: 'web/setup-command.js', contentType: 'text/javascript; charset=utf-8' }],
+  ['/styles.css', { path: 'web/styles.css', contentType: 'text/css; charset=utf-8' }],
+  ['/turtle/install.lua', { path: 'turtle/install.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/startup.lua', { path: 'turtle/startup.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/config.lua', { path: 'turtle/runtime/config.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/logger.lua', { path: 'turtle/runtime/logger.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/spool.lua', { path: 'turtle/runtime/spool.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/actuator.lua', { path: 'turtle/runtime/actuator.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/transport.lua', { path: 'turtle/runtime/transport.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/watchdog.lua', { path: 'turtle/runtime/watchdog.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/executor.lua', { path: 'turtle/runtime/executor.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/odometry.lua', { path: 'turtle/runtime/odometry.lua', contentType: 'text/plain; charset=utf-8' }],
+  ['/turtle/files/runtime/main.lua', { path: 'turtle/runtime/main.lua', contentType: 'text/plain; charset=utf-8' }]
 ]);
 
 function audit(plane, req, statusCode, payload = {}) {
@@ -36,12 +48,21 @@ function audit(plane, req, statusCode, payload = {}) {
   });
 }
 
-export async function handleApiRequest(req, res, plane) {
+export async function handleApiRequest(req, res, plane, setup = {}) {
   const url = parseUrl(req);
   const models = () => plane.readModels();
 
   if (req.method === 'GET' && url.pathname === '/health') {
     return sendJson(res, 200, { ok: true, service: 'computercraft-turtle-fleet' });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/setup') {
+    return sendJson(res, 200, {
+      pairingToken: setup.pairingToken ?? 'dev-pairing-token',
+      installPath: '/turtle/install.lua',
+      runtimeVersion: '0.1.0',
+      suggestedTurtleId: 'fleet-dev-001'
+    });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/fleet') {
@@ -149,7 +170,7 @@ export async function handleApiRequest(req, res, plane) {
   return notFound(res);
 }
 
-export async function handleHttpRequest(req, res, plane) {
+export async function handleHttpRequest(req, res, plane, setup = {}) {
   const url = parseUrl(req);
   const staticFile = req.method === 'GET' ? staticFiles.get(url.pathname) : null;
   if (staticFile) {
@@ -161,14 +182,15 @@ export async function handleHttpRequest(req, res, plane) {
     res.end(body);
     return;
   }
-  return handleApiRequest(req, res, plane);
+  return handleApiRequest(req, res, plane, setup);
 }
 
 export function createHttpServer({ plane = createControlPlane(), pairingToken = 'dev-pairing-token' } = {}) {
+  const setup = { pairingToken };
   const gateway = new WebSocketGateway({ plane, pairingToken });
   const server = http.createServer(async (req, res) => {
     try {
-      await handleHttpRequest(req, res, plane);
+      await handleHttpRequest(req, res, plane, setup);
     } catch (error) {
       sendJson(res, 500, { ok: false, reason: 'internal_error', message: error.message });
     }

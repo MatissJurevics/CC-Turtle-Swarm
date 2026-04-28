@@ -17,6 +17,8 @@ Failed
 
 | Test | Method | Expected result | Status |
 | --- | --- | --- | --- |
+| One-paste installer | Integration/manual | `wget run` installer writes startup, runtime, config, and reboots | Automated |
+| Served runtime files | Integration | Installer and runtime Lua files are available from the control plane | Automated |
 | Missing config | Manual emulator/in-game | Turtle creates or prompts for config without crashing | Manual only |
 | Valid config | Manual emulator/in-game | Runtime starts with configured `turtle_id` and URL | Manual only |
 | Bad URL | Manual emulator/in-game | Retry loop with backoff and structured error | Manual only |
@@ -126,6 +128,7 @@ Failed
 | Manual lease UI | Manual/browser | Controls disabled without lease | Passed |
 | World view states | Manual/browser | Unknown, known, and stale cells are distinct | Passed |
 | Error visibility | Manual/browser | Recent failures are discoverable | Passed |
+| Turtle setup command | Browser/integration | Console renders copyable `wget run` command with current host and token | Automated |
 | Mobile/desktop layout | Manual/browser | Operator-critical text does not overlap | Passed |
 
 ## Factory Provisioning
