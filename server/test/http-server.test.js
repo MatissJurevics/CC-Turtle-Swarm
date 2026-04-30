@@ -215,6 +215,31 @@ test('HTTP API queries world and deploys scripts', async () => {
   assert.equal(script.body.ok, true);
 });
 
+test('HTTP API returns limited turtle logs', async () => {
+  const plane = createControlPlane();
+  plane.events.append({
+    type: 'event.turtle.log',
+    aggregateType: 'turtle',
+    aggregateId: 'turtle-001',
+    turtleId: 'turtle-001',
+    payload: { level: 'info', component: 'main', message: 'first' }
+  });
+  plane.events.append({
+    type: 'event.turtle.log',
+    aggregateType: 'turtle',
+    aggregateId: 'turtle-001',
+    turtleId: 'turtle-001',
+    payload: { level: 'error', component: 'main', message: 'second' }
+  });
+
+  const logs = await callApi(plane, { url: '/api/turtles/turtle-001/logs?limit=1' });
+
+  assert.equal(logs.status, 200);
+  assert.equal(logs.body.turtleId, 'turtle-001');
+  assert.equal(logs.body.events.length, 1);
+  assert.equal(logs.body.events[0].payload.message, 'second');
+});
+
 test('WebSocket gateway accepts heartbeats and dispatches queued commands without binding a port', () => {
   const plane = createControlPlane();
   const gateway = new WebSocketGateway({ plane, pairingToken: 'dev-pairing-token' });
@@ -277,6 +302,37 @@ test('WebSocket gateway completes commands from replayed turtle spool', () => {
   assert.equal(plane.readModels().fleet.turtle('turtle-001').positionConfidence, 0.8);
 });
 
+test('WebSocket gateway preserves turtle runtime log events from spool', () => {
+  const plane = createControlPlane();
+  const gateway = new WebSocketGateway({ plane, pairingToken: 'dev-pairing-token' });
+
+  const socket = new FakeSocket();
+  gateway.handleUpgrade(
+    websocketRequest('/turtle/ws?turtle_id=turtle-001&token=dev-pairing-token'),
+    socket
+  );
+  socket.emit('data', encodeClientFrame({
+    type: 'event.spool',
+    events: [
+      {
+        event_id: 'log-001',
+        type: 'event.turtle.log',
+        body: {
+          level: 'error',
+          component: 'transport',
+          message: 'websocket receive failed',
+          fields: { error: 'timeout' }
+        }
+      }
+    ]
+  }));
+
+  const logs = plane.events.byTurtle('turtle-001').filter((event) => event.type === 'event.turtle.log');
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].aggregateType, 'turtle');
+  assert.equal(logs[0].payload.component, 'transport');
+});
+
 test('HTTP server serves separate landing and console static assets', async () => {
   const plane = createControlPlane();
   const index = await callHttp(plane, { url: '/' });
@@ -290,6 +346,7 @@ test('HTTP server serves separate landing and console static assets', async () =
   const installer = await callHttp(plane, { url: '/turtle/install.lua' });
   const startup = await callHttp(plane, { url: '/turtle/files/startup.lua' });
   const scanner = await callHttp(plane, { url: '/turtle/files/runtime/scanner.lua' });
+  const loggerRuntime = await callHttp(plane, { url: '/turtle/files/runtime/logger.lua' });
   const runtime = await callHttp(plane, { url: '/turtle/files/runtime/main.lua' });
 
   assert.equal(index.statusCode, 200);
@@ -304,6 +361,7 @@ test('HTTP server serves separate landing and console static assets', async () =
   assert.match(consolePage.body, /Provision a turtle/);
   assert.match(consolePage.body, /World Map/);
   assert.match(consolePage.body, /poseGrid/);
+  assert.match(consolePage.body, /turtleLogList/);
   assert.match(consolePage.body, /worldMapCanvas/);
   assert.match(consolePage.body, /<section class="shell"/);
   assert.doesNotMatch(consolePage.body, /One paste to a supervised runtime/);
@@ -331,7 +389,10 @@ test('HTTP server serves separate landing and console static assets', async () =
   assert.match(startup.body, /runtime_entry/);
   assert.equal(scanner.statusCode, 200);
   assert.match(scanner.body, /event.world.scanned|scan/);
+  assert.equal(loggerRuntime.statusCode, 200);
+  assert.match(loggerRuntime.body, /set_sink/);
   assert.equal(runtime.statusCode, 200);
   assert.match(runtime.body, /fleet runtime starting/);
+  assert.match(runtime.body, /event.turtle.log/);
   assert.match(runtime.body, /scanner/);
 });

@@ -3,6 +3,8 @@ import { initWorldMap } from '/map-view.js';
 
 const state = {
   fleet: { turtles: [], jobs: [], diagnostics: [], commands: [] },
+  turtleLogs: [],
+  logsLoading: false,
   selectedTurtleId: null,
   lease: null,
   toastTimer: null,
@@ -28,6 +30,16 @@ async function api(path, options = {}) {
 
 function statusClass(status) {
   return `status-${status ?? 'unknown'}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
 }
 
 function formatCoordinate(value) {
@@ -61,6 +73,74 @@ function formatUpdated(value) {
   }
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleTimeString();
+}
+
+function compactJson(value) {
+  if (value == null) {
+    return '';
+  }
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function logTime(event) {
+  const ts = event.payload?.ts;
+  if (Number.isFinite(ts)) {
+    return new Date(ts).toLocaleTimeString();
+  }
+  return formatUpdated(event.createdAt);
+}
+
+function logLevel(event) {
+  if (event.type === 'event.turtle.log') {
+    return event.payload?.level ?? 'info';
+  }
+  if (event.payload?.success === false || event.payload?.error) {
+    return 'error';
+  }
+  return 'info';
+}
+
+function logSummary(event) {
+  const payload = event.payload ?? {};
+  if (event.type === 'event.turtle.log') {
+    const component = payload.component ? `${payload.component}: ` : '';
+    return `${component}${payload.message ?? 'log'}`;
+  }
+  if (event.type === 'event.action.started') {
+    return `action started: ${payload.action ?? 'unknown'}`;
+  }
+  if (event.type === 'event.action.completed') {
+    const action = payload.action ?? 'unknown';
+    return payload.success === false ? `action failed: ${action}` : `action completed: ${action}`;
+  }
+  if (event.type === 'event.command.completed') {
+    const command = payload.command?.body?.action ?? payload.result?.body?.action ?? 'unknown';
+    return payload.result?.success === false ? `command failed: ${command}` : `command completed: ${command}`;
+  }
+  if (event.type === 'event.world.scanned') {
+    return `world scanned: ${payload.observations?.length ?? 0} observations`;
+  }
+  if (event.type === 'event.turtle.booted') {
+    return 'runtime booted';
+  }
+  if (event.type === 'event.turtle.connected') {
+    return 'gateway connected';
+  }
+  if (event.type === 'event.turtle.disconnected') {
+    return 'gateway disconnected';
+  }
+  return event.type;
+}
+
+function logDetails(event) {
+  if (event.type === 'event.turtle.log') {
+    return compactJson(event.payload?.fields);
+  }
+  return compactJson(event.payload);
 }
 
 function renderMetrics() {
@@ -136,16 +216,51 @@ function renderPose(turtle) {
   `).join('');
 }
 
+function renderLogs() {
+  const host = $('#turtleLogList');
+  if (!host) {
+    return;
+  }
+  if (!state.selectedTurtleId) {
+    host.innerHTML = '<p class="empty-state">Select a turtle to view runtime logs.</p>';
+    return;
+  }
+  if (state.logsLoading && state.turtleLogs.length === 0) {
+    host.innerHTML = '<p class="empty-state">Loading turtle logs...</p>';
+    return;
+  }
+
+  const events = state.turtleLogs
+    .filter((event) => event.type !== 'event.turtle.heartbeat')
+    .slice(-40)
+    .reverse();
+
+  host.innerHTML = events.map((event) => {
+    const details = logDetails(event);
+    return `
+      <article class="turtle-log-entry" data-level="${escapeHtml(logLevel(event))}">
+        <div>
+          <strong>${escapeHtml(logSummary(event))}</strong>
+          <small>${escapeHtml(logTime(event))} · ${escapeHtml(event.type)}</small>
+        </div>
+        ${details ? `<pre>${escapeHtml(details)}</pre>` : ''}
+      </article>
+    `;
+  }).join('') || '<p class="empty-state">No runtime log events yet. Reboot the turtle or run a manual action.</p>';
+}
+
 function renderDetail() {
   const turtle = state.fleet.turtles.find((item) => item.turtleId === state.selectedTurtleId);
   $('#selectedTurtleLabel').textContent = turtle ? `${turtle.turtleId} ${turtle.status} · ${formatPose(turtle)}` : 'none selected';
   renderInventory(turtle);
   renderPose(turtle);
+  renderLogs();
   $('#leaseStatus').textContent = state.lease ? `Lease ${state.lease.leaseId}` : 'No active lease';
   const hasTurtle = Boolean(turtle);
   const hasLease = Boolean(state.lease);
   $('#leaseButton').disabled = !hasTurtle;
   $('#clearQueueButton').disabled = !hasTurtle;
+  $('#refreshLogsButton').disabled = !hasTurtle;
   $$('[data-action]').forEach((button) => {
     button.disabled = !hasTurtle || !hasLease;
   });
@@ -223,6 +338,41 @@ function setConsoleTab(tabName) {
   }
 }
 
+async function refreshLogs() {
+  if (!state.selectedTurtleId) {
+    state.turtleLogs = [];
+    renderLogs();
+    return;
+  }
+  const turtleId = state.selectedTurtleId;
+  state.logsLoading = true;
+  renderLogs();
+  try {
+    const payload = await api(`/api/turtles/${encodeURIComponent(turtleId)}/logs?limit=120`);
+    if (state.selectedTurtleId === turtleId) {
+      state.turtleLogs = payload.events ?? [];
+    }
+  } catch (error) {
+    if (state.selectedTurtleId === turtleId) {
+      state.turtleLogs = [{
+        type: 'event.turtle.log',
+        createdAt: new Date().toISOString(),
+        payload: {
+          level: 'error',
+          component: 'console',
+          message: `Log fetch failed: ${error.message}`,
+          fields: {}
+        }
+      }];
+    }
+  } finally {
+    if (state.selectedTurtleId === turtleId) {
+      state.logsLoading = false;
+      renderLogs();
+    }
+  }
+}
+
 async function refresh() {
   try {
     $('#healthStatus').textContent = 'syncing';
@@ -235,6 +385,7 @@ async function refresh() {
     renderJobs();
     renderScripts();
     renderDiagnostics();
+    await refreshLogs();
     $('#healthStatus').textContent = 'online';
     $('#updatedAt').textContent = new Date().toLocaleTimeString();
   } catch (error) {
@@ -370,8 +521,10 @@ document.addEventListener('click', (event) => {
   if (row) {
     state.selectedTurtleId = row.dataset.turtleId;
     state.lease = null;
+    state.turtleLogs = [];
     renderFleet();
     renderDetail();
+    refreshLogs();
   }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action) {
@@ -382,6 +535,7 @@ document.addEventListener('click', (event) => {
 $('#refreshButton').addEventListener('click', refresh);
 $('#leaseButton').addEventListener('click', acquireLease);
 $('#clearQueueButton').addEventListener('click', clearQueue);
+$('#refreshLogsButton').addEventListener('click', refreshLogs);
 $('#jobForm').addEventListener('submit', createJob);
 $('#worldForm').addEventListener('submit', queryWorld);
 

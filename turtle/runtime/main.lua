@@ -73,6 +73,10 @@ function runtime:emit(event_type, body)
   return event
 end
 
+logger:set_sink(function(entry)
+  runtime:emit("event.turtle.log", entry)
+end)
+
 local rt_actuator = actuator.new(runtime)
 local rt_executor = executor.new(runtime, rt_actuator)
 local rt_transport = transport.new(cfg, logger)
@@ -111,6 +115,11 @@ local function preconditions_ok(preconditions)
 end
 
 local function complete_rejected(command, error_body)
+  logger:error("command rejected", {
+    command_id = command.commandId or command.command_id,
+    action = command.body and command.body.action or "unknown",
+    error = error_body
+  })
   runtime:emit("event.action.completed", {
     command_id = command.commandId or command.command_id,
     action = command.body and command.body.action or "unknown",
@@ -127,6 +136,10 @@ local function run_command(command)
   end
   local command_id = command.commandId or command.command_id
   local body = command.body or {}
+  logger:info("command received", {
+    command_id = command_id,
+    action = body.action or "unknown"
+  })
   local deadline = watchdog.deadline(body.timeout_ms or body.timeoutMs)
   if watchdog.expired(deadline) then
     complete_rejected(command, { code = "command_timeout", message = "Command expired before execution" })

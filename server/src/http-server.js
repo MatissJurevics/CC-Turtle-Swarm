@@ -87,7 +87,12 @@ export async function handleApiRequest(req, res, plane, setup = {}) {
       return sendJson(res, 200, { turtleId: turtle.turtleId, inventory: turtle.inventory });
     }
     if (turtleMatch[2] === 'logs') {
-      return sendJson(res, 200, { turtleId: turtle.turtleId, events: plane.events.byTurtle(turtle.turtleId) });
+      const limit = Number(url.searchParams.get('limit') ?? 100);
+      const events = plane.events.byTurtle(turtle.turtleId);
+      return sendJson(res, 200, {
+        turtleId: turtle.turtleId,
+        events: Number.isFinite(limit) && limit > 0 ? events.slice(-limit) : events
+      });
     }
     return sendJson(res, 200, turtle);
   }
