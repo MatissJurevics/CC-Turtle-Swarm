@@ -6,6 +6,7 @@ const state = {
   camera: null,
   renderer: null,
   root: null,
+  grid: null,
   raycaster: null,
   pointer: null,
   turtleMeshes: [],
@@ -18,12 +19,12 @@ const state = {
 };
 
 const blockPalette = {
-  air: 0x3d5560,
-  solid: 0x8f987e,
-  liquid: 0x4f9ec4,
-  entity: 0xce7a52,
-  turtle: 0xb8ff74,
-  unknown: 0x2d352f
+  air: 0xbfdde7,
+  solid: 0x7f8992,
+  liquid: 0x1f7fa3,
+  entity: 0xff6a2a,
+  turtle: 0xff5a1f,
+  unknown: 0xc9d1d4
 };
 
 function $(selector) {
@@ -53,19 +54,19 @@ function turtlePosition(turtle, fallbackIndex = 0) {
 
 function cellColor(cell) {
   if (cell.blockName?.includes('lava')) {
-    return 0xe06a5f;
+    return 0xd63f26;
   }
   if (cell.blockName?.includes('water')) {
-    return 0x4f9ec4;
+    return 0x1682b0;
   }
   if (cell.blockName?.includes('ore')) {
-    return 0xd8c467;
+    return 0xf2b134;
   }
   if (cell.blockName?.includes('deepslate')) {
-    return 0x505a54;
+    return 0x4b5662;
   }
   if (cell.blockName?.includes('dirt') || cell.blockName?.includes('grass')) {
-    return 0x6c8b58;
+    return 0x6f8f5f;
   }
   return blockPalette[cell.occupancy] ?? blockPalette.unknown;
 }
@@ -147,7 +148,7 @@ async function initThree(canvas) {
   const THREE = await import(THREE_MODULE_URL);
   state.three = THREE;
   state.scene = new THREE.Scene();
-  state.scene.background = new THREE.Color(0x050807);
+  state.scene.background = new THREE.Color(0xeef2f3);
   state.camera = new THREE.PerspectiveCamera(48, 1, 0.1, 5000);
   try {
     state.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -163,13 +164,14 @@ async function initThree(canvas) {
   state.raycaster = new THREE.Raycaster();
   state.pointer = new THREE.Vector2();
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.58);
-  const key = new THREE.DirectionalLight(0xe7ffdd, 1.1);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.66);
+  const key = new THREE.DirectionalLight(0xffffff, 1.15);
   key.position.set(8, 14, 8);
   state.scene.add(ambient, key);
 
-  const grid = new THREE.GridHelper(32, 32, 0x354033, 0x182018);
+  const grid = new THREE.GridHelper(32, 32, 0x1f5eff, 0xcbd5da);
   grid.position.y = -0.51;
+  state.grid = grid;
   state.root.add(grid);
 
   canvas.addEventListener('pointerdown', (event) => {
@@ -227,8 +229,10 @@ function animate() {
 }
 
 function clearScene() {
-  while (state.root.children.length > 1) {
-    const child = state.root.children[1];
+  for (const child of [...state.root.children]) {
+    if (child === state.grid) {
+      continue;
+    }
     state.root.remove(child);
     child.traverse?.((node) => {
       node.geometry?.dispose?.();
@@ -240,6 +244,24 @@ function clearScene() {
     });
   }
   state.turtleMeshes = [];
+}
+
+function gridOffsetFor(centerCoordinate) {
+  return Math.round(centerCoordinate) - centerCoordinate;
+}
+
+function alignGrid(center, turtles, selectedIds) {
+  if (!state.grid) {
+    return;
+  }
+  const primary = turtles.find((turtle) => selectedIds.has(turtle.turtleId) && isPositioned(turtle))
+    ?? turtles.find(isPositioned);
+  const anchorY = primary ? primary.position[1] : Math.round(center.y);
+  state.grid.position.set(
+    gridOffsetFor(center.x),
+    anchorY - center.y - 0.5,
+    gridOffsetFor(center.z)
+  );
 }
 
 function makeCell(cell, center) {
@@ -264,14 +286,16 @@ function makeTurtle(turtle, center, index, selected) {
   const raw = turtlePosition(turtle, index);
   const point = normalizePoint(raw, center);
   const group = new THREE.Group();
-  group.position.set(point.x, point.y + 0.12, point.z);
+  group.position.set(point.x, point.y, point.z);
   group.userData = { type: 'turtle', turtle };
+  const facing = turtle.facing ?? 'north';
+  group.rotation.y = { north: 0, south: Math.PI, east: -Math.PI / 2, west: Math.PI / 2 }[facing] ?? 0;
 
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(0.9, 0.62, 0.9),
+    new THREE.BoxGeometry(0.92, 0.92, 0.92),
     new THREE.MeshStandardMaterial({
-      color: selected ? 0xb8ff74 : 0x72b7d2,
-      emissive: selected ? 0x263b12 : 0x0b2630,
+      color: selected ? 0xff5a1f : 0x1f5eff,
+      emissive: selected ? 0x3a1000 : 0x06184d,
       roughness: 0.55,
       transparent: !selected,
       opacity: selected ? 1 : 0.58
@@ -280,18 +304,19 @@ function makeTurtle(turtle, center, index, selected) {
   body.userData = group.userData;
   group.add(body);
 
-  const pointer = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.48, 4),
-    new THREE.MeshStandardMaterial({ color: 0xf2f6ef, emissive: 0x202820 })
+  const face = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.48, 0.018),
+    new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: selected ? 0x221100 : 0x050505,
+      roughness: 0.48
+    })
   );
-  pointer.position.y = 0.46;
-  pointer.rotation.x = Math.PI / 2;
-  const facing = turtle.facing ?? 'north';
-  pointer.rotation.z = { north: Math.PI, south: 0, east: Math.PI / 2, west: -Math.PI / 2 }[facing] ?? Math.PI;
-  pointer.userData = group.userData;
-  group.add(pointer);
+  face.position.z = -0.47;
+  face.userData = group.userData;
+  group.add(face);
 
-  state.turtleMeshes.push(body, pointer);
+  state.turtleMeshes.push(body, face);
   return group;
 }
 
@@ -325,6 +350,7 @@ function renderScene({ cells, turtles, selectedIds }) {
   clearScene();
   const visibleCells = cells.filter((cell) => cell.occupancy !== 'unknown');
   const center = sceneCenter(visibleCells, turtles);
+  alignGrid(center, turtles, selectedIds);
   visibleCells.forEach((cell) => state.root.add(makeCell(cell, center)));
   turtles.forEach((turtle, index) => {
     state.root.add(makeTurtle(turtle, center, index, selectedIds.has(turtle.turtleId)));
@@ -344,7 +370,7 @@ function renderFallback({ cells, turtles, selectedIds }) {
   canvas.width = Math.max(1, Math.floor(rect.width * pixelRatio));
   canvas.height = Math.max(1, Math.floor(rect.height * pixelRatio));
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-  context.fillStyle = '#050807';
+  context.fillStyle = '#eef2f3';
   context.fillRect(0, 0, rect.width, rect.height);
 
   const visibleCells = cells.filter((cell) => cell.occupancy !== 'unknown');
@@ -360,17 +386,23 @@ function renderFallback({ cells, turtles, selectedIds }) {
     };
   };
 
-  context.strokeStyle = 'rgba(184, 255, 116, 0.12)';
+  context.strokeStyle = 'rgba(31, 94, 255, 0.18)';
   context.lineWidth = 1;
-  for (let line = -12; line <= 12; line += 1) {
-    let a = project({ x: line, y: center.y, z: -12 });
-    let b = project({ x: line, y: center.y, z: 12 });
+  const minGridX = Math.floor(center.x) - 12;
+  const maxGridX = Math.floor(center.x) + 12;
+  const minGridZ = Math.floor(center.z) - 12;
+  const maxGridZ = Math.floor(center.z) + 12;
+  for (let line = minGridX; line <= maxGridX; line += 1) {
+    let a = project({ x: line, y: center.y, z: minGridZ });
+    let b = project({ x: line, y: center.y, z: maxGridZ });
     context.beginPath();
     context.moveTo(a.x, a.y);
     context.lineTo(b.x, b.y);
     context.stroke();
-    a = project({ x: -12, y: center.y, z: line });
-    b = project({ x: 12, y: center.y, z: line });
+  }
+  for (let line = minGridZ; line <= maxGridZ; line += 1) {
+    const a = project({ x: minGridX, y: center.y, z: line });
+    const b = project({ x: maxGridX, y: center.y, z: line });
     context.beginPath();
     context.moveTo(a.x, a.y);
     context.lineTo(b.x, b.y);
@@ -389,19 +421,19 @@ function renderFallback({ cells, turtles, selectedIds }) {
     const raw = turtlePosition(turtle, index);
     const point = project(raw);
     const selected = selectedIds.has(turtle.turtleId);
-    context.fillStyle = selected ? '#b8ff74' : '#72b7d2';
-    context.strokeStyle = '#f2f6ef';
+    context.fillStyle = selected ? '#ff5a1f' : '#1f5eff';
+    context.strokeStyle = '#ffffff';
     context.lineWidth = 2;
     context.beginPath();
     context.arc(point.x, point.y, selected ? 8 : 6, 0, Math.PI * 2);
     context.fill();
     context.stroke();
-    context.fillStyle = '#f2f6ef';
+    context.fillStyle = '#0f171c';
     context.font = '12px sans-serif';
     context.fillText(turtle.turtleId, point.x + 10, point.y - 10);
   });
 
-  context.fillStyle = 'rgba(242, 246, 239, 0.56)';
+  context.fillStyle = 'rgba(15, 23, 28, 0.62)';
   context.font = '13px sans-serif';
   context.fillText('2D fallback: WebGL unavailable in this browser session', 18, rect.height - 18);
 }

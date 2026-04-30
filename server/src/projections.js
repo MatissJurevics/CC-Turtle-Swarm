@@ -103,7 +103,7 @@ export class FleetProjection {
     }
     if (event.type === 'event.action.started') {
       turtle.status = 'busy';
-      turtle.activeCommandId = event.payload.commandId ?? null;
+      turtle.activeCommandId = event.payload.commandId ?? event.payload.command_id ?? null;
       turtle.updatedAt = event.createdAt;
     }
     if (event.type === 'event.action.completed') {
@@ -164,6 +164,7 @@ export class FleetProjection {
         position: null,
         facing: null,
         dimension: 'overworld',
+        positionConfidence: null,
         fuel: null,
         selectedSlot: null,
         inventory: {},
@@ -196,6 +197,9 @@ export class FleetProjection {
     }
     if ('dimension' in payload) {
       fields.dimension = payload.dimension;
+    }
+    if ('position_confidence' in payload || 'positionConfidence' in payload || 'confidence' in payload) {
+      fields.positionConfidence = payload.position_confidence ?? payload.positionConfidence ?? payload.confidence;
     }
     if ('fuel' in payload) {
       fields.fuel = payload.fuel;

@@ -21,6 +21,36 @@ function buildCommand({ host, installPath, pairingToken, turtleId }) {
   return `wget run ${serverUrl}${installPath} ${serverUrl} ${pairingToken} ${turtleId}`;
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
+function splitToken(token) {
+  if (/^https?:\/\//.test(token)) {
+    try {
+      const url = new URL(token);
+      const pathParts = url.pathname.split('/').filter(Boolean).map((part) => `/${part}`);
+      return [`${url.protocol}//${url.host}`, ...pathParts];
+    } catch {
+      return [token];
+    }
+  }
+  return token.length > 24 ? token.match(/.{1,18}/g) : [token];
+}
+
+function formatCommand(command) {
+  return command.split(' ').map((token) => {
+    const parts = splitToken(token).map((part) => `<span class="command-part">${escapeHtml(part)}</span>`).join('');
+    return `<span class="command-token">${parts}</span>`;
+  }).join('<span class="command-gap"> </span>');
+}
+
 async function loadSetup() {
   try {
     const response = await fetch('/api/setup');
@@ -73,7 +103,8 @@ function wireContainer(container, setup, onStatus) {
       pairingToken: setup.pairingToken,
       turtleId: turtleInput.value || setup.suggestedTurtleId
     });
-    commandOutput.textContent = command;
+    commandOutput.dataset.rawCommand = command;
+    commandOutput.innerHTML = formatCommand(command);
     if (gatewayOutput) {
       gatewayOutput.textContent = `${normalizeServerUrl(hostInput.value).replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://')}/turtle/ws`;
     }
@@ -83,7 +114,7 @@ function wireContainer(container, setup, onStatus) {
   turtleInput.addEventListener('input', render);
   copyButton?.addEventListener('click', async () => {
     try {
-      await copyText(commandOutput.textContent);
+      await copyText(commandOutput.dataset.rawCommand ?? commandOutput.textContent);
       onStatus?.('copied', new Date().toLocaleTimeString());
     } catch (error) {
       onStatus?.('copy failed', error.message);

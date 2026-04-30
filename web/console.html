@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ComputerCraft Fleet Console</title>
+    <title>CC Turtle Swarm Console</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <nav class="command-nav console-nav" aria-label="Primary">
-      <a class="brand-mark" href="/">ComputerCraft Fleet</a>
+      <a class="brand-mark" href="/">CC Turtle Swarm</a>
       <div class="nav-links">
         <a href="/">Setup</a>
         <a href="/console" aria-current="page">Console</a>
@@ -23,22 +23,22 @@
     <main class="console-page">
       <header class="console-heading" id="console">
         <div>
-          <p class="eyebrow">Live operations</p>
-          <h1>Operator Console</h1>
+          <p class="eyebrow">Operator workspace</p>
+          <h1>Fleet Console</h1>
         </div>
         <p id="consoleHint">Select a turtle, acquire a lease, then run one bounded action.</p>
       </header>
 
       <div class="console-tabs" role="tablist" aria-label="Console views">
         <button class="is-active" type="button" role="tab" aria-selected="true" data-console-tab="operations">Operations</button>
-        <button type="button" role="tab" aria-selected="false" data-console-tab="map">3D Area</button>
+        <button type="button" role="tab" aria-selected="false" data-console-tab="map">World Map</button>
       </div>
 
       <section data-console-panel="operations">
         <section class="console-onboarding" aria-labelledby="pairTurtleHeading" data-setup-command>
           <div>
             <p class="eyebrow">One-paste setup</p>
-            <h2 id="pairTurtleHeading">Pair a new turtle</h2>
+            <h2 id="pairTurtleHeading">Provision a turtle</h2>
             <p>Paste this in a turtle terminal. The installer writes config, downloads runtime files, and reboots into the fleet.</p>
           </div>
           <div class="install-panel">
@@ -52,7 +52,7 @@
                 <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
               </label>
             </div>
-            <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
+            <div class="command-output"><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></div>
             <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
           </div>
         </section>
@@ -70,6 +70,7 @@
                   <tr>
                     <th>Turtle</th>
                     <th>Status</th>
+                    <th>Pose</th>
                     <th>Fuel</th>
                     <th>Runtime</th>
                   </tr>
@@ -91,6 +92,7 @@
               </div>
               <div>
                 <h3>Manual Control</h3>
+                <dl id="poseGrid" class="pose-grid"></dl>
                 <div class="control-row">
                   <input id="holderInput" value="operator" aria-label="Lease holder">
                   <button id="leaseButton" type="button">Lease</button>
@@ -157,8 +159,8 @@
         <div class="map-toolbar">
           <div>
             <p class="eyebrow">World model</p>
-            <h2>3D Area View</h2>
-            <p>Scanned cells are saved as events and rendered around selected turtles.</p>
+            <h2>World Map</h2>
+            <p>Known cells are saved as events and rendered around selected turtles.</p>
           </div>
           <div class="map-controls">
             <label>

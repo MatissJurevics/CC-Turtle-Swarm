@@ -47,6 +47,35 @@ test('fleet projection materializes turtle heartbeat and action failure', () => 
   assert.equal(turtle.lastError.code, 'blocked');
 });
 
+test('fleet projection tracks runtime pose and active command telemetry', () => {
+  const store = new EventStore();
+  store.append({
+    type: 'event.turtle.heartbeat',
+    aggregateType: 'turtle',
+    aggregateId: 'turtle-001',
+    turtleId: 'turtle-001',
+    payload: {
+      position: [4, 65, -2],
+      facing: 'north',
+      position_confidence: 0.75
+    }
+  });
+  store.append({
+    type: 'event.action.started',
+    aggregateType: 'command',
+    aggregateId: 'cmd-001',
+    turtleId: 'turtle-001',
+    payload: { command_id: 'cmd-001' }
+  });
+
+  const turtle = new FleetProjection().replay(store.all()).turtle('turtle-001');
+
+  assert.deepEqual(turtle.position, [4, 65, -2]);
+  assert.equal(turtle.facing, 'north');
+  assert.equal(turtle.positionConfidence, 0.75);
+  assert.equal(turtle.activeCommandId, 'cmd-001');
+});
+
 test('fleet projection materializes job lifecycle', () => {
   const store = new EventStore();
   store.append({

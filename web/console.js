@@ -30,6 +30,39 @@ function statusClass(status) {
   return `status-${status ?? 'unknown'}`;
 }
 
+function formatCoordinate(value) {
+  if (!Number.isFinite(value)) {
+    return 'n/a';
+  }
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+function formatPosition(turtle) {
+  if (!Array.isArray(turtle?.position) || turtle.position.length !== 3) {
+    return 'unknown';
+  }
+  return turtle.position.map(formatCoordinate).join(', ');
+}
+
+function formatPose(turtle) {
+  return `${formatPosition(turtle)} · ${turtle?.facing ?? 'unknown'}`;
+}
+
+function formatConfidence(value) {
+  if (!Number.isFinite(value)) {
+    return 'n/a';
+  }
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatUpdated(value) {
+  if (!value) {
+    return 'never';
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleTimeString();
+}
+
 function renderMetrics() {
   const turtles = state.fleet.turtles;
   const online = turtles.filter((turtle) => turtle.status === 'online').length;
@@ -49,12 +82,13 @@ function renderFleet() {
     <tr data-turtle-id="${turtle.turtleId}" data-selected="${turtle.turtleId === state.selectedTurtleId}">
       <td>${turtle.turtleId}</td>
       <td class="${statusClass(turtle.status)}">${turtle.status ?? 'unknown'}</td>
+      <td>${formatPose(turtle)}</td>
       <td>${turtle.fuel ?? 'n/a'}</td>
       <td>${turtle.runtimeVersion ?? 'n/a'}</td>
     </tr>
   `).join('') || `
     <tr>
-      <td colspan="4">
+      <td colspan="5">
         <div class="empty-state">No turtles online. Use <a href="/">Setup</a>, then reboot the turtle.</div>
       </td>
     </tr>
@@ -77,10 +111,36 @@ function renderInventory(turtle) {
   $('#inventoryGrid').innerHTML = slots.join('');
 }
 
+function renderPose(turtle) {
+  const rows = turtle ? [
+    ['Position', formatPosition(turtle)],
+    ['Facing', turtle.facing ?? 'unknown'],
+    ['Dimension', turtle.dimension ?? 'overworld'],
+    ['Confidence', formatConfidence(turtle.positionConfidence)],
+    ['Command', turtle.activeCommandId ?? 'idle'],
+    ['Updated', formatUpdated(turtle.updatedAt)]
+  ] : [
+    ['Position', 'unknown'],
+    ['Facing', 'unknown'],
+    ['Dimension', 'unknown'],
+    ['Confidence', 'n/a'],
+    ['Command', 'idle'],
+    ['Updated', 'never']
+  ];
+
+  $('#poseGrid').innerHTML = rows.map(([label, value]) => `
+    <div>
+      <dt>${label}</dt>
+      <dd>${value}</dd>
+    </div>
+  `).join('');
+}
+
 function renderDetail() {
   const turtle = state.fleet.turtles.find((item) => item.turtleId === state.selectedTurtleId);
-  $('#selectedTurtleLabel').textContent = turtle ? `${turtle.turtleId} ${turtle.status}` : 'none selected';
+  $('#selectedTurtleLabel').textContent = turtle ? `${turtle.turtleId} ${turtle.status} · ${formatPose(turtle)}` : 'none selected';
   renderInventory(turtle);
+  renderPose(turtle);
   $('#leaseStatus').textContent = state.lease ? `Lease ${state.lease.leaseId}` : 'No active lease';
   const hasTurtle = Boolean(turtle);
   const hasLease = Boolean(state.lease);
@@ -91,8 +151,8 @@ function renderDetail() {
   });
   $('#actionStatus').textContent = hasTurtle
     ? hasLease
-      ? 'Lease active. Keep actions bounded.'
-      : 'Acquire a lease before sending actions.'
+      ? `Lease active. Pose ${formatPose(turtle)}.`
+      : `Acquire a lease before sending actions. Pose ${formatPose(turtle)}.`
     : 'Select an online turtle before sending actions.';
 }
 
@@ -224,8 +284,17 @@ async function sendAction(action) {
         idempotencyKey: `${state.selectedTurtleId}-${action}-${Date.now()}`
       }
     });
-    setNotice(`${action} queued.`);
     await refresh();
+    setNotice(`${action} queued. Waiting for turtle telemetry.`);
+    window.setTimeout(async () => {
+      await refresh();
+      if (state.activeTab === 'map') {
+        state.map?.refresh();
+      }
+    }, 2800);
+    if (state.activeTab === 'map') {
+      state.map?.refresh();
+    }
   } catch (error) {
     setNotice(`Action failed: ${error.message}`);
   }

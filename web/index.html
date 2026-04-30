@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ComputerCraft Turtle Fleet</title>
+    <title>CC Turtle Swarm</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
   </head>
   <body>
     <nav class="command-nav" aria-label="Primary">
-      <a class="brand-mark" href="/">ComputerCraft Fleet</a>
+      <a class="brand-mark" href="/">CC Turtle Swarm</a>
       <div class="nav-links">
         <a href="#setup">Setup</a>
         <a href="#features">Features</a>
@@ -25,37 +25,47 @@
     <main class="page-shell landing-page" id="setup">
       <section class="setup-hero">
         <div class="hero-copy">
-          <p class="eyebrow">Setup runway</p>
-          <h1 class="hero-title">
-            Turtles online.
-            <span class="inline-image inline-image-a" aria-hidden="true"></span>
-            Console ready.
-          </h1>
-          <p class="hero-text">Start the stack, copy the turtle config, verify heartbeat, then move into the operator console for lease-controlled actions.</p>
+          <p class="eyebrow">Control plane setup</p>
+          <h1 class="hero-title">CC Turtle Swarm</h1>
+          <p class="hero-text">Pair one turtle, confirm heartbeat, then operate every move through leases, events, and a live world model.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="/console">Open console</a>
-            <a class="button button-secondary" href="#setupInstructions">Read setup</a>
+            <a class="button button-primary" href="/console">Open fleet console</a>
+            <a class="button button-secondary" href="#setupInstructions">Copy setup</a>
           </div>
         </div>
         <div class="hero-visual motion-image" aria-hidden="true">
+          <div class="terrain-grid"></div>
+          <div class="voxel-field">
+            <span class="voxel voxel-a"></span>
+            <span class="voxel voxel-b"></span>
+            <span class="voxel voxel-c"></span>
+            <span class="voxel voxel-d"></span>
+            <span class="voxel voxel-e"></span>
+            <span class="voxel voxel-f"></span>
+          </div>
+          <div class="scan-rail">
+            <span>lease gate</span>
+            <span>event log</span>
+            <span>world model</span>
+          </div>
           <div class="terminal-frame">
             <div class="terminal-line">docker compose up --build</div>
             <div class="terminal-line">wget run http://<span id="installHostPreview">HOST</span>/turtle/install.lua</div>
             <div class="terminal-line">ws://<span id="gatewayHost">HOST</span>/turtle/ws</div>
-            <div class="terminal-line success">heartbeat: waiting</div>
+            <div class="terminal-line success">heartbeat: awaiting first turtle</div>
           </div>
         </div>
       </section>
 
       <section class="setup-bento" id="setupInstructions" aria-labelledby="setupHeading">
         <div class="section-heading">
-          <h2 id="setupHeading">Setup instructions</h2>
-          <p>Start the server, paste one command in the turtle, then watch for heartbeat in the console.</p>
+          <h2 id="setupHeading">One paste to a supervised runtime</h2>
+          <p>Start the server, install the turtle runtime, then keep setup visible until heartbeat arrives.</p>
         </div>
         <div class="bento-grid">
           <article class="setup-card setup-card-large setup-command-card motion-card" data-setup-command>
-            <h3>Paste into the turtle</h3>
-            <p>Open the turtle terminal and paste this one command. It downloads the installer, writes config, installs runtime files, labels the turtle, and reboots.</p>
+            <h3>Install command</h3>
+            <p>Paste this in a turtle terminal. It writes config, installs runtime files, labels the turtle, and reboots.</p>
             <div class="setup-command-controls">
               <label>
                 Server reachable from Minecraft
@@ -66,22 +76,22 @@
                 <input data-install-turtle-id value="fleet-dev-001" aria-label="Turtle ID">
               </label>
             </div>
-            <pre><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></pre>
+            <div class="command-output"><code data-install-command>wget run http://HOST:8787/turtle/install.lua http://HOST:8787 dev-pairing-token fleet-dev-001</code></div>
             <div class="setup-card-actions">
               <button class="copy-button" type="button" data-copy-install-command>Copy turtle command</button>
               <span>Gateway: <code data-install-gateway>ws://HOST:8787/turtle/ws</code></span>
             </div>
           </article>
           <article class="setup-card setup-card-small motion-card">
-            <h3>Run the stack</h3>
-            <p>Start the control plane, WebSocket gateway, API, MCP adapter surface, and operator console.</p>
+            <h3>Start the stack</h3>
+            <p>Run the control plane, WebSocket gateway, API, MCP adapter surface, and operator console.</p>
             <pre><code>cp .env.example .env
 docker compose up --build</code></pre>
             <button class="copy-button" type="button" data-copy="cp .env.example .env&#10;docker compose up --build">Copy commands</button>
           </article>
           <article class="setup-card setup-card-small motion-card">
-            <h3>Open console</h3>
-            <p>Use the dashboard after the server health check passes.</p>
+            <h3>Open the console</h3>
+            <p>Move into operations after the server health check passes.</p>
             <pre><code>http://<span id="consoleHost">HOST</span>/console</code></pre>
             <a class="button button-secondary compact" href="/console">Go to console</a>
           </article>
@@ -97,8 +107,8 @@ docker compose up --build</code></pre>
 
       <section class="feature-list" id="features" aria-labelledby="featuresHeading">
         <div class="section-heading">
-          <h2 id="featuresHeading">What the stack gives you</h2>
-          <p>The landing page is for setup. The console is where live operations happen.</p>
+          <h2 id="featuresHeading">Control surface guarantees</h2>
+          <p>The setup page gets the runtime online. The console owns live operations.</p>
         </div>
         <div class="feature-rows">
           <article class="feature-row motion-card">
@@ -151,22 +161,22 @@ docker compose up --build</code></pre>
 
       <div class="marquee" aria-hidden="true">
         <div class="marquee-track">
-          <span>event-first</span>
-          <span>lease-controlled</span>
-          <span>observable</span>
-          <span>ack replay</span>
-          <span>safe actions</span>
+          <span>lease gate</span>
+          <span>heartbeat</span>
+          <span>world model</span>
+          <span>event replay</span>
+          <span>bounded action</span>
           <span>runtime supervision</span>
-          <span>event-first</span>
-          <span>lease-controlled</span>
-          <span>observable</span>
-          <span>ack replay</span>
+          <span>lease gate</span>
+          <span>heartbeat</span>
+          <span>world model</span>
+          <span>event replay</span>
         </div>
       </div>
 
       <footer class="final-cta">
         <h2>First safe milestone: one turtle online, one lease, one inspect event.</h2>
-        <a class="button button-primary" href="/console">Open console</a>
+        <a class="button button-primary" href="/console">Open fleet console</a>
       </footer>
     </main>
 

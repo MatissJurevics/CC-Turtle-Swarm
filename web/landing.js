@@ -60,12 +60,29 @@ function initMotion() {
   }
   window.gsap.registerPlugin(window.ScrollTrigger);
   window.gsap.from('.command-nav', { y: -24, opacity: 0, duration: 0.7, ease: 'power3.out' });
-  window.gsap.from('.hero-title, .hero-text, .hero-actions', {
-    y: 34,
-    opacity: 0,
+  window.gsap.from('.hero-title, .hero-text, .hero-actions, .scan-rail', {
+    y: 36,
     duration: 0.9,
     stagger: 0.08,
     ease: 'power3.out'
+  });
+  window.gsap.from('.voxel', {
+    y: 44,
+    rotate: -3,
+    opacity: 0,
+    duration: 0.8,
+    stagger: 0.07,
+    ease: 'back.out(1.4)'
+  });
+  window.gsap.to('.terrain-grid', {
+    yPercent: 8,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.setup-hero',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true
+    }
   });
   window.gsap.utils.toArray('.motion-image').forEach((element) => {
     window.gsap.fromTo(element, { scale: 0.96, opacity: 0.72 }, {
@@ -77,6 +94,18 @@ function initMotion() {
         start: 'top 75%',
         end: 'bottom 25%',
         scrub: true
+      }
+    });
+  });
+  window.gsap.utils.toArray('.motion-card').forEach((element) => {
+    window.gsap.from(element, {
+      y: 20,
+      opacity: 0,
+      duration: 0.55,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: element,
+        start: 'top 86%'
       }
     });
   });

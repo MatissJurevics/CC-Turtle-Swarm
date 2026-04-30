@@ -255,14 +255,26 @@ test('WebSocket gateway completes commands from replayed turtle spool', () => {
       {
         event_id: 'evt-001',
         type: 'event.action.completed',
-        aggregate_type: 'command',
-        aggregate_id: command.commandId,
-        body: { command_id: command.commandId, success: true }
+        body: {
+          command_id: command.commandId,
+          success: true,
+          after: {
+            position: [10, 64, 9],
+            facing: 'east',
+            dimension: 'overworld',
+            position_confidence: 0.8,
+            fuel: 88
+          }
+        }
       }
     ]
   }));
 
   assert.equal(plane.commands.all()[0].status, 'succeeded');
+  assert.equal(plane.events.byAggregate('command', command.commandId)[0].type, 'event.action.completed');
+  assert.deepEqual(plane.readModels().fleet.turtle('turtle-001').position, [10, 64, 9]);
+  assert.equal(plane.readModels().fleet.turtle('turtle-001').facing, 'east');
+  assert.equal(plane.readModels().fleet.turtle('turtle-001').positionConfidence, 0.8);
 });
 
 test('HTTP server serves separate landing and console static assets', async () => {
@@ -281,19 +293,20 @@ test('HTTP server serves separate landing and console static assets', async () =
   const runtime = await callHttp(plane, { url: '/turtle/files/runtime/main.lua' });
 
   assert.equal(index.statusCode, 200);
-  assert.match(index.body, /Setup instructions/);
-  assert.match(index.body, /Paste into the turtle/);
+  assert.match(index.body, /One paste to a supervised runtime/);
+  assert.match(index.body, /Install command/);
   assert.match(index.body, /data-setup-command/);
-  assert.match(index.body, /What the stack gives you/);
+  assert.match(index.body, /Control surface guarantees/);
   assert.match(index.body, /docker compose up --build/);
   assert.doesNotMatch(index.body, /<section class="shell"/);
   assert.equal(consolePage.statusCode, 200);
-  assert.match(consolePage.body, /Operator Console/);
-  assert.match(consolePage.body, /Pair a new turtle/);
-  assert.match(consolePage.body, /3D Area/);
+  assert.match(consolePage.body, /Fleet Console/);
+  assert.match(consolePage.body, /Provision a turtle/);
+  assert.match(consolePage.body, /World Map/);
+  assert.match(consolePage.body, /poseGrid/);
   assert.match(consolePage.body, /worldMapCanvas/);
   assert.match(consolePage.body, /<section class="shell"/);
-  assert.doesNotMatch(consolePage.body, /Setup instructions/);
+  assert.doesNotMatch(consolePage.body, /One paste to a supervised runtime/);
   assert.equal(styles.statusCode, 200);
   assert.match(styles.body, /bento-grid/);
   assert.match(styles.body, /grid-auto-flow: dense/);

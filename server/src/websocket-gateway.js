@@ -63,6 +63,21 @@ function decodeFrames(buffer) {
   return { messages, remaining: buffer.subarray(offset) };
 }
 
+function spoolAggregate(item, payload, turtleId) {
+  const explicitType = item.aggregate_type ?? item.aggregateType;
+  const explicitId = item.aggregate_id ?? item.aggregateId;
+  if (explicitType && explicitId) {
+    return { aggregateType: explicitType, aggregateId: explicitId };
+  }
+  if (item.type?.startsWith('event.action.') && (payload.command_id || payload.commandId)) {
+    return {
+      aggregateType: 'command',
+      aggregateId: payload.command_id ?? payload.commandId
+    };
+  }
+  return { aggregateType: explicitType ?? 'turtle', aggregateId: explicitId ?? turtleId };
+}
+
 export class WebSocketGateway {
   #plane;
   #pairingToken;
@@ -167,11 +182,12 @@ export class WebSocketGateway {
       const acked = [];
       for (const item of message.events ?? []) {
         const payload = item.body ?? item.payload ?? {};
+        const aggregate = spoolAggregate(item, payload, turtleId);
         const event = this.#plane.events.append({
           eventId: item.event_id ?? item.eventId ?? randomUUID(),
           type: item.type,
-          aggregateType: item.aggregate_type ?? item.aggregateType ?? 'turtle',
-          aggregateId: item.aggregate_id ?? item.aggregateId ?? turtleId,
+          aggregateType: aggregate.aggregateType,
+          aggregateId: aggregate.aggregateId,
           turtleId,
           jobId: item.job_id ?? item.jobId ?? null,
           payload,
